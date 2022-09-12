@@ -4,6 +4,7 @@ import com.architecture.first.framework.business.vicinity.events.Acknowledgement
 import com.architecture.first.framework.business.vicinity.events.AnonymousOkEvent;
 import com.architecture.first.framework.business.vicinity.events.ErrorEvent;
 import com.architecture.first.framework.security.events.AccessRequestEvent;
+import com.architecture.first.framework.security.events.SecurityIncidentEvent;
 import com.architecture.first.framework.technical.events.ArchitectureFirstEvent;
 import com.architecture.first.framework.technical.events.CheckupEvent;
 import io.jsonwebtoken.Claims;
@@ -22,6 +23,13 @@ import java.util.function.Function;
  */
 public interface SecurityGuard {
     static String internalToken = "";
+
+    static final String SECURITY_GUARD = "SecurityGuard";
+    static final String VICINITY_MONITOR = "VicinityMonitor";
+    static final String IDENTITY_PROVIDER = "IdentityProvider";
+    static final String SECURITY_CUSTOMER = "archie.t.first@boa.com";
+    static final Long SECURITY_USER_ID = 201l;
+    static final String SECURITY_TOKEN = "securityToken";
 
     static SecretKey secretKey = new SecretKey() {
         @Override
@@ -123,4 +131,48 @@ public interface SecurityGuard {
         return true;
     });
 
+    /**
+     * Reply to the original event
+     * @param event
+     * @return
+     */
+    static ArchitectureFirstEvent replyToSender(ArchitectureFirstEvent event) {
+        Actor actor = determineTargetActor(event);
+
+        var incident = new SecurityIncidentEvent(actor, SECURITY_GUARD,  event.from(), event)
+                .setAsRequiresAcknowledgement(false);
+
+        return actor.say(incident);
+    }
+
+    /**
+     * Determine actor that is targeted for the event
+     * @param event
+     * @return
+     */
+    private static Actor determineTargetActor(ArchitectureFirstEvent event) {
+        Actor actor = (event.getSource() instanceof Actor)
+                ? (Actor) event.getSource()
+                : (event.getTarget() != null && event.getTarget().isPresent())
+                ? event.getTarget().get() : null;
+        return actor;
+    }
+
+    /**
+     * Report a security error for the event
+     * @param event
+     * @param message
+     * @return
+     */
+    public static ArchitectureFirstEvent reportError(ArchitectureFirstEvent event, String message) {
+        Actor actor = determineTargetActor(event);
+        event.setHasErrors(true);
+
+        var incident = new SecurityIncidentEvent(actor, SECURITY_GUARD,  VICINITY_MONITOR, event);
+        incident.setAsRequiresAcknowledgement(false);
+        incident.setMessage(message);
+        incident.setHasErrors(true);
+
+        return actor.announce(incident);
+    }
 }
