@@ -11,18 +11,18 @@ import com.architecture.first.framework.technical.events.ArchitectureFirstEvent;
 public interface Actor {
     void onException(ArchitectureFirstEvent event, ActorException exception);
     void onException(ActorException exception, String message);
-    void donException(ActorException exception, String message);
     String name();
+    String group();
 
     boolean isSecurityGuard();
 
     void onError(String s);
 
-    ArchitectureFirstEvent announce(SecurityIncidentEvent incident);
+    ArchitectureFirstEvent announce(ArchitectureFirstEvent incident);
 
     ArchitectureFirstEvent say(ArchitectureFirstEvent incident);
 
     void onException(ArchitectureFirstEvent evt, ActorException e, String s);
 
-    void notice(UnhandledExceptionEvent vicinity);
+    Actor notice(ArchitectureFirstEvent vicinity);
 }
