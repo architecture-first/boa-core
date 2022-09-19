@@ -128,50 +128,55 @@ public class VicinityProxy implements Vicinity {
     }
 
     /**
-     * Event listener for events.
-     * The events are sent to the target actor in the Vicinity if they are not local or meant to be received in the current process.
-     * @param event
+     * Event listener for phrases.
+     * The phrases are sent to the target actor in the Vicinity if they are not local or meant to be received in the current process.
+     * @param phrase
      */
     @Override
-    public void onApplicationPhrase(ArchitectureFirstPhrase event) {
+    public void onApplicationPhrase(ArchitectureFirstPhrase phrase) {
 
-        if (!event.isLocal() && !(event instanceof Local)) { // local events don't leave this process
-            if (!event.isPropagatedFromVicinity()) { // don't echo back out events
-                log.info("Vicinity Proxy evaluating event: " + event.toString());
+        if (!phrase.isLocal() && !(phrase instanceof Local)) { // local phrases don't leave this process
+            if (!phrase.isPropagatedFromVicinity()) { // don't echo back out phrases
+                if (onVicinityReceivePhrase(phrase)) {
+                    if (onVicinityPhraseSecurityCheck(phrase)) {
+                        try {
+                            phrase.to().forEach(t -> {
+                                if (StringUtils.isNotEmpty(t)) {
+                                    if (!phrase.hasTargetActor() || (phrase.hasTargetActor() && !t.equals(phrase.getTarget().get().name()))) {
+                                        VicinityMessage message = onVicinityBeforePublishMessage(phrase, t);
 
-                if (SecurityGuard.isOkToProceed(event)) {
-                    try {
-                        event.to().forEach(t -> {
-                            if (StringUtils.isNotEmpty(t)) {
-                                if (!event.hasTargetActor() || (event.hasTargetActor() && !t.equals(event.getTarget().get().name()))) {
-                                    VicinityMessage message = generateMessage(event, t);
-                                    sendMessage(VICINITY_API_MESSAGE_SEND, message.toString());
+                                        var path = VICINITY_API_MESSAGE_SEND;
+                                        onVicinityPublishMessage(path, message);
+                                        onVicinityAfterPublishMessage(path, message);
+
+                                        if (phrase.isErrorPhrase()) {      // send error phrases to vicinity monitor as well as the caller
+                                            onVicinityError(path, phrase);
+                                        }
+                                    }
+                                } else {
+                                    onVicinityEmptyTarget(phrase);
                                 }
-                            } else {
-                                String msg = "to: is empty on message: " + event.getMessage();
-                                log.info(msg);
-                                throw new VicinityException(msg);
-                            }
-                        });
-                    } catch (Exception e) {
-                        throw new VicinityException(e);
+                            });
+                        } catch (Exception e) {
+                            onVicinityProcessingException(e);
+                        }
+                    } else {
+                        onVicinitySecurityGuardRejectedPhrase(phrase);
                     }
-                } else {
-                    processInvalidToken(event);
                 }
             }
         }
     }
 
     /**
-     * Generates a Vicinity message from and event
-     * @param event
+     * Generates a Vicinity message from and phrase
+     * @param phrase
      * @param to
      * @return
      */
-    public VicinityMessage generateMessage(ArchitectureFirstPhrase event, String to) {
-        VicinityMessage message = new VicinityMessage(event.from(), to);
-        message.setPayload(event, event.getClass());
+    public VicinityMessage generateMessage(ArchitectureFirstPhrase phrase, String to) {
+        VicinityMessage message = new VicinityMessage(phrase.from(), to);
+        message.setPayload(phrase, phrase.getClass());
         return message;
     }
 
@@ -188,18 +193,18 @@ public class VicinityProxy implements Vicinity {
 
     /**
      * Handle an invalid token
-     * @param event
+     * @param phrase
      */
-    private void processInvalidToken(ArchitectureFirstPhrase event) {
-        String msg = "Received Invalid Token: " + new Gson().toJson(event);
+    private void processInvalidToken(ArchitectureFirstPhrase phrase) {
+        String msg = "Received Invalid Token: " + new Gson().toJson(phrase);
         log.error(msg);
-        SecurityGuard.reportError(event, msg);
-        SecurityGuard.replyToSender(event.setMessage(msg));
+        SecurityGuard.reportError(phrase, msg);
+        SecurityGuard.replyToSender(phrase.setMessage(msg));
     }
 
 
     /**
-     * Receive events from the environment, such as Redis, and propagate to the intended targets
+     * Receive phrases from the environment, such as Redis, and propagate to the intended targets
      * @param owner
      * @param target
      */
@@ -218,36 +223,35 @@ public class VicinityProxy implements Vicinity {
                             var future = executor.submit(() -> {
                                 try {
                                     threadId.set(Thread.currentThread().getName());
-                                    ArchitectureFirstPhrase event = ArchitectureFirstPhrase.from(this, vicinityMessage);
-                                    if (event != null) {
-                                        event.setPropagatedFromVicinity(true);
-                                        event.shouldAwaitResponse(false);  // this flag is for the caller not recipients
-                                        event.onVicinityInit();
-                                        log.info("Received and Locally Published Event: " + new Gson().toJson(event));
-                                        convo.record(event, Conversation.Status.ReceivedInVicinity);
+                                    ArchitectureFirstPhrase phrase = ArchitectureFirstPhrase.from(this, vicinityMessage);
+                                    if (phrase != null) {
+                                        phrase.setPropagatedFromVicinity(true);
+                                        phrase.shouldAwaitResponse(false);  // this flag is for the caller not recipients
+                                        phrase.onVicinityInit();
+                                        log.info("Received and Locally Published Event: " + new Gson().toJson(phrase));
+                                        convo.record(phrase, Conversation.Status.ReceivedInVicinity);
 
-                                        if (SecurityGuard.isOkToProceed(event)) {
-                                            event.setAsLocal(false).setAsHandled(false);
+                                        if (SecurityGuard.isOkToProceed(phrase)) {
+                                            phrase.setAsLocal(false).setAsHandled(false);
                                             if ("server".equals(vicinityProcessType)) {
-                                                event.setPropagatedFromVicinity(false);
+                                                phrase.setPropagatedFromVicinity(false);
                                             }
                                             if (owner.isSecurityGuard()) {
-                                                publisher.publishEvent(new SecurityHolder(event));
+                                                publisher.publishEvent(new SecurityHolder(phrase));
                                             }
                                             else {
-                                                publisher.publishEvent(event);
+                                                publisher.publishEvent(phrase);
                                             }
-
                                         }
                                         else {
-                                            processInvalidToken(event);
+                                            processInvalidToken(phrase);
                                         }
                                     } else {
                                         owner.onError("Vicinity Message is not readable as an ArchitectureFirstEvent: " + vicinityMessage);
                                     }
                                 }
                                 catch (Exception e) {
-                                    owner.onException(new ActorException(owner, e), "Error processing event: ");
+                                    owner.onException(new ActorException(owner, e), "Error processing phrase: ");
                                 }
                                 finally {
                                     activeTasks.remove(this);
@@ -279,7 +283,7 @@ public class VicinityProxy implements Vicinity {
     }
 
     /**
-     * Unsubscribe from the event subscription
+     * Unsubscribe from the phrase subscription
      * @param target
      */
     public void unsubscribe(String target) {
@@ -521,5 +525,76 @@ public class VicinityProxy implements Vicinity {
             throw new RuntimeException(e);
         }
     }
+
+    // Lifecycle events (start)
+    private void onVicinityAfterProcessArchitectureFirstPhrase(ArchitectureFirstPhrase phrase) {
+    }
+
+    private void onVicinityReceivedPhraseBlocked(ArchitectureFirstPhrase phrase) {
+        log.info("Message blocked: " + phrase.toString());
+    }
+
+    private void onVicinityProcessingException(Exception e) {
+        // TODO - handle threading errors.
+        log.error("Message error:", e);
+    }
+
+    private void onVicinityEmptyTarget(ArchitectureFirstPhrase phrase) {
+        String msg = "to: is empty on message: " + phrase.getMessage();
+        log.info(msg);
+        throw new VicinityException(msg);
+    }
+
+    private void onVicinityError(String path, ArchitectureFirstPhrase phrase) {
+            log.error("Error on phrase: " + phrase.getRequestId());
+    }
+
+    private void onVicinityAfterPublishMessage(String channel, VicinityMessage message) {
+        log.info("Published Phrase to Vicinity: " + channel + " message: " + message);
+    }
+
+    private String onVicinityPublishMessage(String path, VicinityMessage message) {
+        sendMessage(path, message.toString());
+
+        return path;
+    }
+
+    private VicinityMessage onVicinityBeforePublishMessage(ArchitectureFirstPhrase phrase, String t) {
+        return generateMessage(phrase, t);
+    }
+
+    private void onVicinityRecordConvo(ArchitectureFirstPhrase phrase) {
+        convo.record(phrase, Conversation.Status.SendingViaVicinity);
+    }
+
+    private boolean onVicinityReceivePhrase(ArchitectureFirstPhrase phrase) {
+        log.info("Vicinity Proxy Receiving phrase: " + phrase);
+
+        if (phrase.name().equals("ActorEntered")) {
+            if (vicinityInfo.getActorEnteredPhrase().equals(VicinityInfo.VALUE_DISABLED)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean onVicinityPhraseSecurityCheck(ArchitectureFirstPhrase phrase) {
+        return SecurityGuard.isOkToProceed(phrase);
+    }
+
+    private void onVicinitySecurityGuardRejectedPhrase(ArchitectureFirstPhrase phrase) {
+        processInvalidToken(phrase);
+    }
+
+    private void onVicinityAlreadyPropagatedPhrase(ArchitectureFirstPhrase phrase) {
+        log.warn("Local phrase already propagated: " + phrase);
+    }
+
+    private void onVicinityLocalPhraseIgnored(ArchitectureFirstPhrase phrase) {
+        log.warn("Local phrase ignored: " + phrase);
+    }
+
+    // Lifecycle events (end)
 
 }
