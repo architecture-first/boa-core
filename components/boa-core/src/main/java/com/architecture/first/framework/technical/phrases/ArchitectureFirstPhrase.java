@@ -1,7 +1,7 @@
-package com.architecture.first.framework.technical.events;
+package com.architecture.first.framework.technical.phrases;
 
 import com.architecture.first.framework.business.actors.Actor;
-import com.architecture.first.framework.business.vicinity.events.ErrorEvent;
+import com.architecture.first.framework.business.vicinity.phrases.Error;
 import com.architecture.first.framework.business.vicinity.messages.VicinityMessage;
 import com.architecture.first.framework.technical.util.SimpleModel;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -22,13 +22,13 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
- * The core event for communication in the Vicinity and in process
+ * The core phrase for communication in the Vicinity and in process
  */
 @Slf4j
-public class ArchitectureFirstEvent extends ApplicationEvent {
+public class ArchitectureFirstPhrase extends ApplicationEvent {
     public static final String REQUEST_ID = "requestId";
     public static final String DEFAULT_PROJECT = "default";
-    public static final String ORIGINAL_EVENT_NAME = "originalEventName";
+    public static final String ORIGINAL_EVENT_NAME = "originalPhraseName";
     public static final String FROM = "from";
     public static final String TO = "to";
     public static final String CUSTOMER_INFO = "customerInfo";
@@ -39,10 +39,10 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     public static String EVENT_ALL_PARTICIPANTS = "all";
     private static final int requestIdSize = 20;
 
-    public static String EVENT_TYPE_ANONYMOUS_OK = "AnonymousOkEvent";
+    public static String EVENT_TYPE_ANONYMOUS_OK = "AnonymousOkPhrase";
     public static String EVENT_TYPE_SECURED_BASIC = "SecuredBasic";
 
-    private String name = "ArchitectureFirstEvent";
+    private String name = "ArchitectureFirstPhrase";
     private String type = EVENT_TYPE_ANONYMOUS_OK;
     private SimpleModel header = new SimpleModel();
     private SimpleModel payload = new SimpleModel();
@@ -51,12 +51,12 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     private transient Gson gson;
     private transient Configuration gsonConfig;
     private boolean isPropagatedFromVicinity = false;
-    private boolean isLocalEvent = false;
+    private boolean isLocalPhrase = false;
     private boolean isAnnouncement = false;
     private boolean wasHandled = false;
     private boolean awaitResponse = false;
     private long awaitTimeoutSeconds = 30;
-    private boolean isPipelineEvent = false;
+    private boolean isPipelinePhrase = false;
     private boolean hasErrors = false;
     private boolean isReply = false;
     private boolean requiresAcknowledgement = false;
@@ -68,69 +68,69 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     private long index = 0;
 
     /**
-     * Create an event
+     * Create a phrase
      * @param source
      * @param name
      * @param from
      * @param to
-     * @param originalEvent
+     * @param originalPhrase
      */
-    public ArchitectureFirstEvent(Object source, String name, String from, List<String> to, ArchitectureFirstEvent originalEvent) {
+    public ArchitectureFirstPhrase(Object source, String name, String from, List<String> to, ArchitectureFirstPhrase originalPhrase) {
         super(source);
         this.name = name;
         header.put(FROM, from);
         header.put(TO, to);
-        if (originalEvent != null) {
-            setOriginalEvent(originalEvent);
+        if (originalPhrase != null) {
+            setOriginalPhrase(originalPhrase);
         }
         else {
             setRequestId(onGetRequestId());
-            setOriginalEventName(name());
+            setOriginalPhraseName(name());
         }
     }
 
     /**
-     * Create an event
+     * Create a phrase
      * @param source
      * @param name
      * @param from
      * @param to
      */
-    public ArchitectureFirstEvent(Object source, String name, String from, List<String> to) {
+    public ArchitectureFirstPhrase(Object source, String name, String from, List<String> to) {
         this(source, name, from, to, null);
     }
 
 
     /**
-     * Create an event
+     * Create a phrase
      * @param source
-     * @param eventToReplyTo
+     * @param phraseToReplyTo
      */
-    public ArchitectureFirstEvent(Object source, ArchitectureFirstEvent eventToReplyTo) {
-        this(source, eventToReplyTo.name(), eventToReplyTo.toFirst(), eventToReplyTo.from(), eventToReplyTo);
+    public ArchitectureFirstPhrase(Object source, ArchitectureFirstPhrase phraseToReplyTo) {
+        this(source, phraseToReplyTo.name(), phraseToReplyTo.toFirst(), phraseToReplyTo.from(), phraseToReplyTo);
     }
 
     /**
-     *Create an event
+     *Create a phrase
      * @param source
      * @param name
      * @param from
      * @param to
      */
-    public ArchitectureFirstEvent(Object source, String name, String from, String to) {
+    public ArchitectureFirstPhrase(Object source, String name, String from, String to) {
         this(source, name, from, new ArrayList<String>(Collections.singletonList(to)), null);
     }
 
     /**
-     * Create an event
+     * Create a phrase
      * @param source
      * @param name
      * @param from
      * @param to
-     * @param originEvent
+     * @param originPhrase
      */
-    public ArchitectureFirstEvent(Object source, String name, String from, String to, ArchitectureFirstEvent originEvent) {
-        this(source, name, from, new ArrayList<String>(Collections.singletonList(to)), originEvent);
+    public ArchitectureFirstPhrase(Object source, String name, String from, String to, ArchitectureFirstPhrase originPhrase) {
+        this(source, name, from, new ArrayList<String>(Collections.singletonList(to)), originPhrase);
     }
 
     protected String onGetRequestId() {
@@ -138,20 +138,20 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     }
 
     /**
-     * Set the Actor that the event targets once it arrives in the desired process
+     * Set the Actor that the phrase targets once it arrives in the desired process
      * @param target
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setTargetActor(Actor target) {
+    public ArchitectureFirstPhrase setTargetActor(Actor target) {
         this.target = Optional.of(target);
         return this;
     }
 
     /**
      * Clear the target entry
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent resetTargetActor() {
+    public ArchitectureFirstPhrase resetTargetActor() {
         this.target = Optional.empty();
         return this;
     }
@@ -169,32 +169,32 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     public boolean hasTargetActor() {return target != null && target.isPresent();}
 
     /**
-     * Returns the type of the event
+     * Returns the type of the phrase
      * @return
      */
     public String type() {return type;}
 
     /**
-     * Sets the type of the event
+     * Sets the type of the phrase
      * @param type
      * @return
      */
-    public ArchitectureFirstEvent setType(String type) {
+    public ArchitectureFirstPhrase setType(String type) {
         this.type = type;
         return this;
     }
 
     /**
-     * Sets the event as secured
+     * Sets the phrase as secured
      * @return
      */
-    public ArchitectureFirstEvent setAsSecured() {
+    public ArchitectureFirstPhrase setAsSecured() {
         this.type = EVENT_TYPE_SECURED_BASIC;
         return this;
     }
 
     /**
-     * Returns whether the event is secured
+     * Returns whether the phrase is secured
      * @return
      */
     public boolean isSecured() {
@@ -202,18 +202,18 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     }
 
     /**
-     * Returns whether the event is a certain name
+     * Returns whether the phrase is a certain name
      * @return
      */
     public boolean isNamed(String name) {return this.name.equals(name) || this.getClass().getSimpleName().equals(name);}
 
 
     /**
-     * Sets the name of the event
+     * Sets the name of the phrase
      * @param name
      * @return
      */
-    public ArchitectureFirstEvent setName(String name) {
+    public ArchitectureFirstPhrase setName(String name) {
         this.name = name;
         return this;
     }
@@ -222,23 +222,23 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     }
 
     /**
-     * Returns the name of the event
+     * Returns the name of the phrase
      * @return
      */
     public String name() {return StringUtils.isNotEmpty(name) ? name : getClass().getSimpleName();}
 
     /**
-     * Returns the subject of the event
+     * Returns the subject of the phrase
      * @return
      */
-    public String subject() {return name().replace("Event","");}
+    public String subject() {return name().replace("Phrase","");}
 
     /**
      * Sets the optional project. Default is 'default'
      * @param project
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setProject(String project) {
+    public ArchitectureFirstPhrase setProject(String project) {
         this.header().put(BOA_PROJECT, project);
         return this;
     }
@@ -250,13 +250,13 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     public String project() {return (String) this.header().get(BOA_PROJECT);}
 
     /**
-     * Returns the source of the event
+     * Returns the source of the phrase
      * @return
      */
     public String from() {return (String) header.get(FROM);}
 
     /**
-     * Returns the target names and/or groups of the event
+     * Returns the target names and/or groups of the phrase
      * @return
      */
     public List<String> to() {return (List<String>) header.get(TO);}
@@ -276,9 +276,9 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     /**
      * Sets the target name or group
      * @param name
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setTo(String name) {
+    public ArchitectureFirstPhrase setTo(String name) {
         header.put(TO, new ArrayList<String>());
         ((List<String>) header.get(TO)).add(name);
         return this;
@@ -287,9 +287,9 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     /**
      * Sets the source name
      * @param name
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setFrom(String name) {
+    public ArchitectureFirstPhrase setFrom(String name) {
         header.put(FROM, name);
         return this;
     }
@@ -297,9 +297,9 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     /**
      * Sets the source.
      * @param name
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setSource(String name) {
+    public ArchitectureFirstPhrase setSource(String name) {
         source = name;
         return this;
     }
@@ -323,91 +323,91 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     public SimpleModel payload() {if (payload == null) {payload = new SimpleModel();} return payload;}
 
     /**
-     * Set true if the event has arrived external to the process via the Vicinity
+     * Set true if the phrase has arrived external to the process via the Vicinity
      * @param status
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setPropagatedFromVicinity(boolean status) {
+    public ArchitectureFirstPhrase setPropagatedFromVicinity(boolean status) {
         isPropagatedFromVicinity = status;
         return this;
     }
 
     /**
-     * Returns if the event has arrived external to the process via the Vicinity
+     * Returns if the phrase has arrived external to the process via the Vicinity
      * @return
      */
     public boolean isPropagatedFromVicinity() {return isPropagatedFromVicinity;}
 
     /**
-     * Sets the event as one that will not be sent through the Vicinity and will stay in process
+     * Sets the phrase as one that will not be sent through the Vicinity and will stay in process
      * @param status
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setAsLocal(boolean status) {
-        isLocalEvent = status;
+    public ArchitectureFirstPhrase setAsLocal(boolean status) {
+        isLocalPhrase = status;
         return this;
     }
 
     /**
-     * Returns if the event will not be sent through the Vicinity and will stay in process
+     * Returns if the phrase will not be sent through the Vicinity and will stay in process
      * @return
      */
-    public boolean isLocal() {return isLocalEvent;}
+    public boolean isLocal() {return isLocalPhrase;}
 
     /**
-     * Sets the event as an announcement type that will be sent to a group of Actors
+     * Sets the phrase as an announcement type that will be sent to a group of Actors
      * @param status
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setAsAnnouncement(boolean status) {
+    public ArchitectureFirstPhrase setAsAnnouncement(boolean status) {
         isAnnouncement = status;
         return this;
     }
 
     /**
-     * Returns if the event is an announcement type
+     * Returns if the phrase is an announcement type
      * @return
      */
     public boolean isAnnouncement() {return isAnnouncement;}
 
     /**
-     * Sets the event as handled so it is no longer propagated
+     * Sets the phrase as handled so it is no longer propagated
      * @param status
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setAsHandled(boolean status) {
+    public ArchitectureFirstPhrase setAsHandled(boolean status) {
         wasHandled = status;
         return this;
     }
 
     /**
-     * Returns if the event was handled
+     * Returns if the phrase was handled
      * @return
      */
     public boolean wasHandled() {return wasHandled;}
 
     /**
-     * Sets the event as a pipeline event for dynamic processing
+     * Sets the phrase as a pipeline phrase for dynamic processing
      * @param status
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setAsPipelineEvent(boolean status) {
-        isPipelineEvent = status;
+    public ArchitectureFirstPhrase setAsPipelinePhrase(boolean status) {
+        isPipelinePhrase = status;
         return this;
     }
 
     /**
-     * Returns if the event is a pipeline event
+     * Returns if the phrase is a pipeline phrase
      * @return
      */
-    public boolean isPipelineEvent() {return isPipelineEvent;}
+    public boolean isPipelinePhrase() {return isPipelinePhrase;}
 
     /**
      * Sets the task as a TO-DO task for processing later
      * @param status
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setAsToDoTask(boolean status) {
+    public ArchitectureFirstPhrase setAsToDoTask(boolean status) {
         isToDoTask = status;
         return this;
     }
@@ -419,11 +419,11 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     public boolean isToDoTask() {return isToDoTask;}
 
     /**
-     * Sets a link between the TO-DO task and the event
+     * Sets a link between the TO-DO task and the phrase
      * @param toDoLink
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setToDoLink(String toDoLink) {
+    public ArchitectureFirstPhrase setToDoLink(String toDoLink) {
         this.toDoLink = toDoLink;
         return this;
     }
@@ -435,11 +435,11 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     public String getToDoLink() {return toDoLink;}
 
     /**
-     * Set if should process later or allow event to be unhandled
+     * Set if should process later or allow phrase to be unhandled
      * @param status true if should process later
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setAsProcessLaterIfNoActorFound(boolean status) {
+    public ArchitectureFirstPhrase setAsProcessLaterIfNoActorFound(boolean status) {
         processLaterIfNoActorFound = status;
         return this;
     }
@@ -453,9 +453,9 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     /**
      * Set the original Actor name for tracking
      * @param name
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setOriginalActorName(String name) {
+    public ArchitectureFirstPhrase setOriginalActorName(String name) {
         originalActorName = name;
         return this;
     }
@@ -469,9 +469,9 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     /**
      * Set the task list name
      * @param name
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setTasklist(String name) {
+    public ArchitectureFirstPhrase setTasklist(String name) {
         tasklist = name;
         return this;
     }
@@ -485,9 +485,9 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     /**
      * Sets the mode as reply
      * @param status
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setIsReply(boolean status) {
+    public ArchitectureFirstPhrase setIsReply(boolean status) {
         isReply = status;
         return this;
     }
@@ -499,11 +499,11 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     public boolean isReply() {return isReply;}
 
     /**
-     * Sets the event to require acknowledgement
+     * Sets the phrase to require acknowledgement
      * @param status
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setAsRequiresAcknowledgement(boolean status) {
+    public ArchitectureFirstPhrase setAsRequiresAcknowledgement(boolean status) {
         requiresAcknowledgement = status;
         return this;
     }
@@ -515,29 +515,29 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     public boolean requiresAcknowledgement() {return requiresAcknowledgement;}
 
     /**
-     * Sets whether the event or related processing has errors
+     * Sets whether the phrase or related processing has errors
      * @param status
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setHasErrors(boolean status) {
+    public ArchitectureFirstPhrase setHasErrors(boolean status) {
         hasErrors = status;
         return this;
     }
 
     /**
-     * Returns whether the event or related processing has errors
-     * @return true if the event or related processing has errors
+     * Returns whether the phrase or related processing has errors
+     * @return true if the phrase or related processing has errors
      */
     public boolean hasErrors() {return hasErrors;}
 
     /**
-     * Returns whether the event or related processing has errors
-     * @return true if the event or related processing has errors
+     * Returns whether the phrase or related processing has errors
+     * @return true if the phrase or related processing has errors
      */
-    public boolean isErrorEvent() {return "ErrorEvent".equals(type) || this instanceof ErrorEvent;}
+    public boolean isErrorPhrase() {return "Error".equals(type) || this instanceof Error;}
 
     /**
-     * Returns the index that the event is by order in the UnAck (unacknowledged) or Ack (acknowledged) event list
+     * Returns the index that the phrase is by order in the UnAck (unacknowledged) or Ack (acknowledged) phrase list
      * @return index
      */
     public long index() {
@@ -545,47 +545,47 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     }
 
     /**
-     * Sets the index that the event is by order in the UnAck (unacknowledged) or Ack (acknowledged) event list
+     * Sets the index that the phrase is by order in the UnAck (unacknowledged) or Ack (acknowledged) phrase list
      */
     public void setIndex(long index) {
         this.index = index;
     }
 
     /**
-     * Returns whether the caller will await response of this event for callback purposes
+     * Returns whether the caller will await response of this phrase for callback purposes
      * @return true if should await response
      */
     public boolean awaitResponse() {return awaitResponse;}
 
     /**
-     * Sets whether the caller will await response of this event for callback purposes
-     * @return ArchitectureFirstEvent
+     * Sets whether the caller will await response of this phrase for callback purposes
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent shouldAwaitResponse(boolean status) {
+    public ArchitectureFirstPhrase shouldAwaitResponse(boolean status) {
         this.awaitResponse = status;
         return this;
     }
 
     /**
-     * Returns the duration of time in seconds the caller will await response of this event
+     * Returns the duration of time in seconds the caller will await response of this phrase
      * @return the length of time in seconds to wait
      */
     public long awaitTimeoutSeconds() {return this.awaitTimeoutSeconds;}
 
     /**
-     * Sets the duration of time in seconds the caller will await response of this event
-     * @return ArchitectureFirstEvent
+     * Sets the duration of time in seconds the caller will await response of this phrase
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setAwaitTimeoutSeconds(long seconds) {
+    public ArchitectureFirstPhrase setAwaitTimeoutSeconds(long seconds) {
         this.awaitTimeoutSeconds = seconds;
         return this;
     }
 
     /**
      * Sets the access token
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setAccessToken(String jwtToken) {header.put(JWT_TOKEN, jwtToken); return this;}
+    public ArchitectureFirstPhrase setAccessToken(String jwtToken) {header.put(JWT_TOKEN, jwtToken); return this;}
 
     /**
      * Returns the access token
@@ -594,7 +594,7 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     public String getAccessToken() {return (String) header.get(JWT_TOKEN);}
 
     /**
-     * Returns whether the event contains a token
+     * Returns whether the phrase contains a token
      * @return access token
      */
     public Boolean hasAccessToken() {return header.containsKey(JWT_TOKEN) && header.get(JWT_TOKEN) != null;}
@@ -611,19 +611,19 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     public String getProcessedJwtToken() {return (String) ((Map<String,Object>)payload.get(TOKEN)).get(TOKEN);}
 
     /**
-     * Adds payload for the event
+     * Adds payload for the phrase
      * @param payload
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent addPayload(SimpleModel payload) {this.payload = payload; return this;}
+    public ArchitectureFirstPhrase addPayload(SimpleModel payload) {this.payload = payload; return this;}
 
     /**
      * Adds a header entry
      * @param key
      * @param value
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent addHeader(String key, String value) {
+    public ArchitectureFirstPhrase addHeader(String key, String value) {
         this.header().put(key, value);
         return this;
     }
@@ -640,24 +640,24 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     /**
      * Sets a message
      * @param message
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setMessage(String message) {
+    public ArchitectureFirstPhrase setMessage(String message) {
         this.message = message;
         return this;
     }
 
     /**
-     * Returns a reply form of the event
+     * Returns a reply form of the phrase
      * @param from
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent reply(String from) {
+    public ArchitectureFirstPhrase reply(String from) {
         this.setTo(from());
         header.put(FROM, from);
         isPropagatedFromVicinity = false;
         isReply = true;
-        isLocalEvent = false;
+        isLocalPhrase = false;
         wasHandled = false;
         return this;
     }
@@ -671,9 +671,9 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     /**
      * Sets the request id
      * @param requestId
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setRequestId(String requestId) {
+    public ArchitectureFirstPhrase setRequestId(String requestId) {
         if (StringUtils.isNotEmpty(requestId)) {
             this.header().put(REQUEST_ID, requestId);
         }
@@ -681,17 +681,17 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     }
 
     /**
-     * Returns whether the original event name exists
+     * Returns whether the original phrase name exists
      * @return
      */
-    public boolean hasOriginalEventName() {return StringUtils.isNotEmpty((String) this.header().get(ORIGINAL_EVENT_NAME));}
+    public boolean hasOriginalPhraseName() {return StringUtils.isNotEmpty((String) this.header().get(ORIGINAL_EVENT_NAME));}
 
     /**
-     * Sets the original event name
+     * Sets the original phrase name
      * @param name
-     * @return ArchitectureFirstEvent
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setOriginalEventName(String name) {
+    public ArchitectureFirstPhrase setOriginalPhraseName(String name) {
         if (StringUtils.isNotEmpty(name)) {
             this.header().put(ORIGINAL_EVENT_NAME, name);
         }
@@ -699,42 +699,42 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     }
 
     /**
-     * Returns the original event name exists
+     * Returns the original phrase name exists
      * @return
      */
-    public String originalEventName() {return (String) this.header().get(ORIGINAL_EVENT_NAME);}
+    public String originalPhraseName() {return (String) this.header().get(ORIGINAL_EVENT_NAME);}
 
     /**
-     * Sets the original event for tracking
-     * @param originalEvent
-     * @return ArchitectureFirstEvent
+     * Sets the original phrase for tracking
+     * @param originalPhrase
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent setOriginalEvent(ArchitectureFirstEvent originalEvent) {
-        setRequestId(originalEvent.getRequestId());
-        setOriginalEventName(StringUtils.isNotEmpty(originalEvent.originalEventName()) ? originalEvent.originalEventName(): originalEvent.name());
-        return initArchitectureFirstEvent(originalEvent);
+    public ArchitectureFirstPhrase setOriginalPhrase(ArchitectureFirstPhrase originalPhrase) {
+        setRequestId(originalPhrase.getRequestId());
+        setOriginalPhraseName(StringUtils.isNotEmpty(originalPhrase.originalPhraseName()) ? originalPhrase.originalPhraseName(): originalPhrase.name());
+        return initArchitectureFirstPhrase(originalPhrase);
     }
 
-    private ArchitectureFirstEvent initArchitectureFirstEvent(ArchitectureFirstEvent originalEvent) {
-        setRequestId(originalEvent.getRequestId());
-        setAccessToken(originalEvent.getAccessToken());
-        if (originalEvent.header().containsKey(BOA_CONN)) {
-            addHeader(BOA_CONN, (String) originalEvent.header().get(BOA_CONN));
+    private ArchitectureFirstPhrase initArchitectureFirstPhrase(ArchitectureFirstPhrase originalPhrase) {
+        setRequestId(originalPhrase.getRequestId());
+        setAccessToken(originalPhrase.getAccessToken());
+        if (originalPhrase.header().containsKey(BOA_CONN)) {
+            addHeader(BOA_CONN, (String) originalPhrase.header().get(BOA_CONN));
         }
-        if (originalEvent.header().containsKey(BOA_PROJECT)) {
-            addHeader(BOA_PROJECT, (String) originalEvent.header().get(BOA_PROJECT));
+        if (originalPhrase.header().containsKey(BOA_PROJECT)) {
+            addHeader(BOA_PROJECT, (String) originalPhrase.header().get(BOA_PROJECT));
         }
         return this;
     }
 
     /**
-     * Initialize the event based on the default event
-     * @param defaultLocalEvent
-     * @return ArchitectureFirstEvent
+     * Initialize the phrase based on the default phrase
+     * @param defaultLocalPhrase
+     * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstEvent initFromDefaultEvent(ArchitectureFirstEvent defaultLocalEvent) {
-        setRequestId(defaultLocalEvent.getRequestId());
-        return initArchitectureFirstEvent(defaultLocalEvent);
+    public ArchitectureFirstPhrase initFromDefaultPhrase(ArchitectureFirstPhrase defaultLocalPhrase) {
+        setRequestId(defaultLocalPhrase.getRequestId());
+        return initArchitectureFirstPhrase(defaultLocalPhrase);
     }
 
     /**
@@ -797,7 +797,7 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
      * @param value
      * @return
      */
-    public ArchitectureFirstEvent setHeaderValue(String name, Object value) {
+    public ArchitectureFirstPhrase setHeaderValue(String name, Object value) {
         header().put(name, value);
         return this;
     }
@@ -827,7 +827,7 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
      * @param value
      * @return
      */
-    public ArchitectureFirstEvent setPayloadValue(String name, Object value) {
+    public ArchitectureFirstPhrase setPayloadValue(String name, Object value) {
         payload().put(name, value);
         return this;
     }
@@ -869,28 +869,28 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     }
 
     // Dynamic methods (start)
-    private transient HashMap<String, BiFunction<ArchitectureFirstEvent, Object, ArchitectureFirstEvent>> fnSetters = new HashMap();
-    public ArchitectureFirstEvent addSetterFunction(String name, BiFunction<ArchitectureFirstEvent, Object, ArchitectureFirstEvent> fnSetter) {
+    private transient HashMap<String, BiFunction<ArchitectureFirstPhrase, Object, ArchitectureFirstPhrase>> fnSetters = new HashMap();
+    public ArchitectureFirstPhrase addSetterFunction(String name, BiFunction<ArchitectureFirstPhrase, Object, ArchitectureFirstPhrase> fnSetter) {
         fnSetters.put(name, fnSetter);
         return this;
     }
 
-    public ArchitectureFirstEvent apply(BiFunction<ArchitectureFirstEvent, Object, ArchitectureFirstEvent> fnSetter, Object param) {
+    public ArchitectureFirstPhrase apply(BiFunction<ArchitectureFirstPhrase, Object, ArchitectureFirstPhrase> fnSetter, Object param) {
         fnSetter.apply(this, param);
         return this;
     }
-    public ArchitectureFirstEvent apply(String name, String param) {
+    public ArchitectureFirstPhrase apply(String name, String param) {
         fnSetters.get(name).apply(this, param);
         return this;
     }
 
-    private transient HashMap<String, Function<ArchitectureFirstEvent, Object>> fnGetters = new HashMap();
-    public ArchitectureFirstEvent addGetterFunction(String name, Function<ArchitectureFirstEvent, Object> fnGetter) {
+    private transient HashMap<String, Function<ArchitectureFirstPhrase, Object>> fnGetters = new HashMap();
+    public ArchitectureFirstPhrase addGetterFunction(String name, Function<ArchitectureFirstPhrase, Object> fnGetter) {
         fnGetters.put(name, fnGetter);
         return this;
     }
 
-    public Object apply(Function<ArchitectureFirstEvent, Object> fnGetter) {
+    public Object apply(Function<ArchitectureFirstPhrase, Object> fnGetter) {
         return fnGetter.apply(this);
     }
     public Object apply(String name) {
@@ -898,7 +898,7 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     }
     // Dynamic methods (end)
 
-    // Lifecycle events (start)
+    // Lifecycle phrases (start)
 
     /**
      * Called when instantiated from the Vicinity
@@ -906,25 +906,25 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     public void onVicinityInit() {
         //... override for custom behavior
     }
-    // Lifecycle events (end)
+    // Lifecycle phrases (end)
 
     /**
-     * Convert a Vicinity message to an ArchitectureFirstEvent
+     * Convert a Vicinity message to an ArchitectureFirstPhrase
      * @param source
      * @param message
-     * @return return ArchitectureFirstEvent object or null if error
+     * @return return ArchitectureFirstPhrase object or null if error
      */
-    public static ArchitectureFirstEvent from(Object source, VicinityMessage message) {
+    public static ArchitectureFirstPhrase from(Object source, VicinityMessage message) {
         try {
-            var eventType = message.getHeader().getEventType();
-            if (eventType != null) {
-                if (Character.isUpperCase(eventType.charAt(0))) {
+            var phraseType = message.getHeader().getPhraseType();
+            if (phraseType != null) {
+                if (Character.isUpperCase(phraseType.charAt(0))) {
                     return from(message);
                 }
                 else {
-                    var cls = Class.forName(message.getHeader().getEventType());
-                    ArchitectureFirstEvent event = new Gson().fromJson(message.getJsonPayload(), (Type) cls);
-                    return event;
+                    var cls = Class.forName(message.getHeader().getPhraseType());
+                    ArchitectureFirstPhrase phrase = new Gson().fromJson(message.getJsonPayload(), (Type) cls);
+                    return phrase;
                 }
             }
 
@@ -936,15 +936,15 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     }
 
     /**
-     * Convert a Vicinity message to a generic ArchitectureFirstEvent
+     * Convert a Vicinity message to a generic ArchitectureFirstPhrase
      * @param message
-     * @return return ArchitectureFirstEvent object or null if error
+     * @return return ArchitectureFirstPhrase object or null if error
      */
-    public static ArchitectureFirstEvent from(VicinityMessage message) {
+    public static ArchitectureFirstPhrase from(VicinityMessage message) {
         try {
-            ArchitectureFirstEvent event = new Gson().fromJson(message.getJsonPayload(), ArchitectureFirstEvent.class);
+            ArchitectureFirstPhrase phrase = new Gson().fromJson(message.getJsonPayload(), ArchitectureFirstPhrase.class);
 
-            return event;
+            return phrase;
         } catch (Exception e) {
             log.error("Invalid class definition: ", e);
         }
@@ -953,54 +953,54 @@ public class ArchitectureFirstEvent extends ApplicationEvent {
     }
 
     /**
-     * Returns an event based on an original event without the payload
+     * Returns an phrase based on an original phrase without the payload
      * @param from
      * @param source
-     * @param originalEvent
-     * @return return ArchitectureFirstEvent object or null if error
+     * @param originalPhrase
+     * @return return ArchitectureFirstPhrase object or null if error
      */
-    public static ArchitectureFirstEvent fromForReplyWithoutPayload(Object source, String from, ArchitectureFirstEvent originalEvent) {
-        ArchitectureFirstEvent replyEvent = new ArchitectureFirstEvent(source, originalEvent.name(), from, originalEvent.from());
-        replyEvent.setOriginalEvent(originalEvent);
+    public static ArchitectureFirstPhrase fromForReplyWithoutPayload(Object source, String from, ArchitectureFirstPhrase originalPhrase) {
+        ArchitectureFirstPhrase replyPhrase = new ArchitectureFirstPhrase(source, originalPhrase.name(), from, originalPhrase.from());
+        replyPhrase.setOriginalPhrase(originalPhrase);
 
-        return replyEvent;
+        return replyPhrase;
     }
 
     /**
-     * Returns an event based on an original event
+     * Returns an phrase based on an original phrase
      * @param from
      * @param source
-     * @param originalEvent
-     * @return return ArchitectureFirstEvent object or null if error
+     * @param originalPhrase
+     * @return return ArchitectureFirstPhrase object or null if error
      */
-    public static ArchitectureFirstEvent fromForReply(Object source, String from, ArchitectureFirstEvent originalEvent) {
-        return fromForReply(source, originalEvent.name(), originalEvent.type(), from, originalEvent, true);
+    public static ArchitectureFirstPhrase fromForReply(Object source, String from, ArchitectureFirstPhrase originalPhrase) {
+        return fromForReply(source, originalPhrase.name(), originalPhrase.type(), from, originalPhrase, true);
     }
 
 
     /**
-     * Returns an event based on an original event
+     * Returns an phrase based on an original phrase
      * @param from
      * @param name
      * @param type
      * @param source
-     * @param originalEvent
-     * @return return ArchitectureFirstEvent object or null if error
+     * @param originalPhrase
+     * @return return ArchitectureFirstPhrase object or null if error
      */
-    public static ArchitectureFirstEvent fromForReply(Object source, String name, String type, String from, ArchitectureFirstEvent originalEvent, boolean includePayload) {
-        ArchitectureFirstEvent replyEvent = fromForReplyWithoutPayload(source, from, originalEvent);
+    public static ArchitectureFirstPhrase fromForReply(Object source, String name, String type, String from, ArchitectureFirstPhrase originalPhrase, boolean includePayload) {
+        ArchitectureFirstPhrase replyPhrase = fromForReplyWithoutPayload(source, from, originalPhrase);
 
         if (includePayload) {
-            replyEvent.addPayload(originalEvent.payload());
+            replyPhrase.addPayload(originalPhrase.payload());
         }
-        replyEvent.setAccessToken(originalEvent.getAccessToken());
-        replyEvent.setName(name);
-        replyEvent.setType(type);
+        replyPhrase.setAccessToken(originalPhrase.getAccessToken());
+        replyPhrase.setName(name);
+        replyPhrase.setType(type);
 
-        if (originalEvent.isSecured()) {
-            replyEvent.setAsSecured();
+        if (originalPhrase.isSecured()) {
+            replyPhrase.setAsSecured();
         }
 
-        return replyEvent;
+        return replyPhrase;
     }
 }

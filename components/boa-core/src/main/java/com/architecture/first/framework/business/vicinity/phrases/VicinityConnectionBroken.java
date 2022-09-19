@@ -1,15 +1,15 @@
-package com.architecture.first.framework.business.vicinity.events;
+package com.architecture.first.framework.business.vicinity.phrases;
 
 import com.architecture.first.framework.business.vicinity.Vicinity;
-import com.architecture.first.framework.technical.events.ArchitectureFirstEvent;
+import com.architecture.first.framework.technical.phrases.ArchitectureFirstPhrase;
 
 /**
  * Represents an event when an Actor's connection to the Vicinity is broken and is no long able to accept events
  */
-public class VicinityConnectionBrokenEvent extends ArchitectureFirstEvent implements ErrorEvent {
+public class VicinityConnectionBroken extends ArchitectureFirstPhrase implements Error {
 
-    public VicinityConnectionBrokenEvent(Object source, String from, String to) {
-        super(source, "VicinityConnectionBrokenEvent", from, to);
+    public VicinityConnectionBroken(Object source, String from, String to) {
+        super(source, "VicinityConnectionBroken", from, to);
     }
 
     /**
@@ -17,7 +17,7 @@ public class VicinityConnectionBrokenEvent extends ArchitectureFirstEvent implem
      * @param owner
      * @return
      */
-    public VicinityConnectionBrokenEvent setOwner(String owner) {
+    public VicinityConnectionBroken setOwner(String owner) {
         this.payload().put("owner", owner);
         return this;
     }
@@ -35,7 +35,7 @@ public class VicinityConnectionBrokenEvent extends ArchitectureFirstEvent implem
      * @param target
      * @return
      */
-    public VicinityConnectionBrokenEvent setTargetOwner(String target) {
+    public VicinityConnectionBroken setTargetOwner(String target) {
         this.payload().put("target", target);
         return this;
     }
@@ -53,7 +53,7 @@ public class VicinityConnectionBrokenEvent extends ArchitectureFirstEvent implem
      * @param vicinity
      * @return
      */
-    public VicinityConnectionBrokenEvent setVicinity(Vicinity vicinity) {
+    public VicinityConnectionBroken setVicinity(Vicinity vicinity) {
         this.payload().put("vicinity", vicinity);
         return this;
     }

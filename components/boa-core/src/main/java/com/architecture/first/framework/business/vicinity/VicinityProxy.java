@@ -3,17 +3,15 @@ package com.architecture.first.framework.business.vicinity;
 import com.architecture.first.framework.business.actors.Actor;
 import com.architecture.first.framework.business.actors.SecurityGuard;
 import com.architecture.first.framework.business.actors.exceptions.ActorException;
-import com.architecture.first.framework.business.vicinity.config.AppContext;
 import com.architecture.first.framework.business.vicinity.conversation.Conversation;
-import com.architecture.first.framework.business.vicinity.events.VicinityConnectionBrokenEvent;
+import com.architecture.first.framework.business.vicinity.phrases.VicinityConnectionBroken;
 import com.architecture.first.framework.business.vicinity.exceptions.VicinityException;
 import com.architecture.first.framework.business.vicinity.info.VicinityInfo;
 import com.architecture.first.framework.business.vicinity.messages.VicinityMessage;
 import com.architecture.first.framework.business.vicinity.threading.VicinityConnections;
-import com.architecture.first.framework.security.events.SecurityHolderEvent;
-import com.architecture.first.framework.security.events.SecurityIncidentEvent;
-import com.architecture.first.framework.technical.events.ArchitectureFirstEvent;
-import com.architecture.first.framework.technical.events.LocalEvent;
+import com.architecture.first.framework.security.phrases.SecurityHolder;
+import com.architecture.first.framework.technical.phrases.ArchitectureFirstPhrase;
+import com.architecture.first.framework.technical.phrases.Local;
 import com.architecture.first.framework.technical.threading.Connection;
 import com.architecture.first.framework.technical.util.SimpleModel;
 import com.google.gson.Gson;
@@ -64,7 +62,7 @@ public class VicinityProxy implements Vicinity {
     @Autowired
     private ApplicationEventPublisher publisher;
 
-    @Value("${vicinity.url}")
+    @Value("${vicinity.url:http://localhost:9991}")
     private String vicinityUrl;
 
     @Value("${vicinity.processType:client}")
@@ -76,7 +74,7 @@ public class VicinityProxy implements Vicinity {
     @Autowired
     private VicinityInfo vicinityInfo;
 
-    @Value("${redis.host}")
+    @Value("${redis.host:localhost}")
     private String redisHost;
 
     @Value("${redis.port:6379}")
@@ -135,9 +133,9 @@ public class VicinityProxy implements Vicinity {
      * @param event
      */
     @Override
-    public void onApplicationEvent(ArchitectureFirstEvent event) {
+    public void onApplicationPhrase(ArchitectureFirstPhrase event) {
 
-        if (!event.isLocal() && !(event instanceof LocalEvent)) { // local events don't leave this process
+        if (!event.isLocal() && !(event instanceof Local)) { // local events don't leave this process
             if (!event.isPropagatedFromVicinity()) { // don't echo back out events
                 log.info("Vicinity Proxy evaluating event: " + event.toString());
 
@@ -171,7 +169,7 @@ public class VicinityProxy implements Vicinity {
      * @param to
      * @return
      */
-    public VicinityMessage generateMessage(ArchitectureFirstEvent event, String to) {
+    public VicinityMessage generateMessage(ArchitectureFirstPhrase event, String to) {
         VicinityMessage message = new VicinityMessage(event.from(), to);
         message.setPayload(event, event.getClass());
         return message;
@@ -192,7 +190,7 @@ public class VicinityProxy implements Vicinity {
      * Handle an invalid token
      * @param event
      */
-    private void processInvalidToken(ArchitectureFirstEvent event) {
+    private void processInvalidToken(ArchitectureFirstPhrase event) {
         String msg = "Received Invalid Token: " + new Gson().toJson(event);
         log.error(msg);
         SecurityGuard.reportError(event, msg);
@@ -205,7 +203,7 @@ public class VicinityProxy implements Vicinity {
      * @param owner
      * @param target
      */
-    public void subscribe(Actor owner, String target, BiFunction<Actor, ArchitectureFirstEvent, Void> fnCallback) {
+    public void subscribe(Actor owner, String target, BiFunction<Actor, ArchitectureFirstPhrase, Void> fnCallback) {
         Runnable submitTask =  () -> {
             try (Jedis jedisDedicated = new Jedis(redisHost, redisPort, JEDIS_TIMEOUT)) {
                 jedisDedicated.subscribe(new JedisPubSub() {
@@ -220,7 +218,7 @@ public class VicinityProxy implements Vicinity {
                             var future = executor.submit(() -> {
                                 try {
                                     threadId.set(Thread.currentThread().getName());
-                                    ArchitectureFirstEvent event = ArchitectureFirstEvent.from(this, vicinityMessage);
+                                    ArchitectureFirstPhrase event = ArchitectureFirstPhrase.from(this, vicinityMessage);
                                     if (event != null) {
                                         event.setPropagatedFromVicinity(true);
                                         event.shouldAwaitResponse(false);  // this flag is for the caller not recipients
@@ -234,7 +232,7 @@ public class VicinityProxy implements Vicinity {
                                                 event.setPropagatedFromVicinity(false);
                                             }
                                             if (owner.isSecurityGuard()) {
-                                                publisher.publishEvent(new SecurityHolderEvent(event));
+                                                publisher.publishEvent(new SecurityHolder(event));
                                             }
                                             else {
                                                 publisher.publishEvent(event);
@@ -265,7 +263,7 @@ public class VicinityProxy implements Vicinity {
                 }, channelFor(target));
             }
             catch(Exception e) {
-                var evt =  new VicinityConnectionBrokenEvent(this, "vicinity", owner.name())
+                var evt =  new VicinityConnectionBroken(this, "vicinity", owner.name())
                         .setOwner(owner.name())
                         .setTargetOwner(target)
                         .setVicinity(this)
@@ -309,7 +307,7 @@ public class VicinityProxy implements Vicinity {
 
     protected String findActiveActor(String type, String project) {
         var workQueueKey = String.format("%s.%s", type,
-                StringUtils.isNotEmpty(project) ? project : ArchitectureFirstEvent.DEFAULT_PROJECT);
+                StringUtils.isNotEmpty(project) ? project : ArchitectureFirstPhrase.DEFAULT_PROJECT);
         if (!workQueueMap.containsKey(workQueueKey) || currentWorkforceSize.get(workQueueKey) == 0 ||
                 ( workQueueMap.get(workQueueKey).size() < currentWorkforceSize.get(workQueueKey))) {
 
@@ -356,9 +354,9 @@ public class VicinityProxy implements Vicinity {
      * @return
      */
     public String findActor(String type, String project) {
-        var prj = (StringUtils.isNotEmpty(project)) ? project : ArchitectureFirstEvent.DEFAULT_PROJECT;
+        var prj = (StringUtils.isNotEmpty(project)) ? project : ArchitectureFirstPhrase.DEFAULT_PROJECT;
         // search for actor in default project if that is what was sent
-        if (ArchitectureFirstEvent.DEFAULT_PROJECT.equals(prj)) {
+        if (ArchitectureFirstPhrase.DEFAULT_PROJECT.equals(prj)) {
             return findActiveActor(type, prj);
         }
 
@@ -367,7 +365,7 @@ public class VicinityProxy implements Vicinity {
 
         // if not found then find actor in default project
         if (StringUtils.isEmpty(actorName)) {
-            return findActiveActor(type, ArchitectureFirstEvent.DEFAULT_PROJECT);
+            return findActiveActor(type, ArchitectureFirstPhrase.DEFAULT_PROJECT);
         }
 
         return actorName;
@@ -379,7 +377,7 @@ public class VicinityProxy implements Vicinity {
      * @return
      */
     public String findActor(String type) {
-        return findActor(type, ArchitectureFirstEvent.DEFAULT_PROJECT);
+        return findActor(type, ArchitectureFirstPhrase.DEFAULT_PROJECT);
     }
 
     /**

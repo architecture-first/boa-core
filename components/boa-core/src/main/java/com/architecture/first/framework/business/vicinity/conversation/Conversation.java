@@ -1,7 +1,7 @@
 package com.architecture.first.framework.business.vicinity.conversation;
 
 import com.architecture.first.framework.technical.cache.JedisHCursor;
-import com.architecture.first.framework.technical.events.ArchitectureFirstEvent;
+import com.architecture.first.framework.technical.phrases.ArchitectureFirstPhrase;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,7 +85,7 @@ public class Conversation {
      * @param status - the status of the event processing
      * @return
      */
-    public String record(ArchitectureFirstEvent event, Status status) {
+    public String record(ArchitectureFirstPhrase event, Status status) {
         return  (!event.name().equals("SelfVicinityCheckupEvent") && !event.name().equals("AcknowledgementEvent")
                 && !event.toFirst().equals("VicinityMonitor"))
                 ? record(event.getRequestId(), event.name(), event.from(), event.toFirst(), String.valueOf(event.index()), status)

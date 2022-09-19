@@ -23,7 +23,7 @@ public class VicinityInfo {
         this.name = info.name;
         this.todo = info.todo;
         this.acknowledgement = info.acknowledgement;
-        this.actorEnteredEvent = info.actorEnteredEvent;
+        this.actorEnteredPhrase = info.actorEnteredPhrase;
     }
 
     @Value("${vicinity.name:local-vicinity}")
@@ -35,7 +35,7 @@ public class VicinityInfo {
     @Value("${vicinity.env.acknowledgement:disabled}")
     private String acknowledgement;
 
-    @Value("${vicinity.env.actor-entered-event:disabled}")
-    private String actorEnteredEvent;
+    @Value("${vicinity.env.actor-entered-phrase:disabled}")
+    private String actorEnteredPhrase;
 
 }

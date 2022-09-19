@@ -15,7 +15,7 @@ public class VicinityHeader implements Serializable {
     private String to;
     private String from;
     private String subject;
-    private String eventType;
+    private String phraseType;
     private String token;
     private SimpleModel attributes;
 }

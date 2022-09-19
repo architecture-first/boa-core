@@ -5,7 +5,7 @@ import com.architecture.first.framework.business.actors.SecurityGuard;
 import com.architecture.first.framework.business.actors.exceptions.ActorException;
 import com.architecture.first.framework.technical.aop.AsyncRequestContext;
 import com.architecture.first.framework.technical.aop.RequestContext;
-import com.architecture.first.framework.technical.events.ArchitectureFirstEvent;
+import com.architecture.first.framework.technical.phrases.ArchitectureFirstPhrase;
 import com.architecture.first.framework.technical.user.UserInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -45,14 +45,14 @@ public class TaskAspect {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
         TaskTracking taskTracking = method.getAnnotation(TaskTracking.class);
-        ArchitectureFirstEvent eventParam = null;
+        ArchitectureFirstPhrase eventParam = null;
         String accessToken = null;
 
         var param = (joinPoint.getArgs().length > 0) ? joinPoint.getArgs()[0] : "ARCHITECTURE_FIRST_EVENT_SHOULD_BE_FIRST_PARAMETER";
         var requestId = "";
         var tasklist = "";
-        if (param instanceof ArchitectureFirstEvent) {
-            eventParam = (ArchitectureFirstEvent) param;
+        if (param instanceof ArchitectureFirstPhrase) {
+            eventParam = (ArchitectureFirstPhrase) param;
             requestId = eventParam.getRequestId();
             accessToken = eventParam.getAccessToken();
             tasklist = eventParam.tasklist();

@@ -1,11 +1,10 @@
 package com.architecture.first.framework.business.vicinity.todo;
 
-import ch.qos.logback.core.html.NOPThrowableRenderer;
 import com.architecture.first.framework.business.vicinity.Vicinity;
-import com.architecture.first.framework.business.vicinity.acknowledgement.Acknowledgement;
+import com.architecture.first.framework.business.vicinity.acknowledgement.Acknowledgements;
 import com.architecture.first.framework.business.vicinity.info.VicinityInfo;
 import com.architecture.first.framework.technical.cache.JedisHCursor;
-import com.architecture.first.framework.technical.events.ArchitectureFirstEvent;
+import com.architecture.first.framework.technical.phrases.ArchitectureFirstPhrase;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +38,7 @@ public class ToDoList {
     private JedisPooled jedis;
 
     @Autowired
-    private Acknowledgement ack;
+    private Acknowledgements ack;
 
     @Autowired
     private Vicinity vicinity;
@@ -52,7 +51,7 @@ public class ToDoList {
     public static String TO_DO_LIST = "ToDo";
 
     /**
-     * Add a task that represents an unacknowledged event
+     * Add a task that represents an unacknowledged phrase
      * @param group - group, such as Merchant
      * @param key - key to determine entry
      * @param position - position in the UnAck list
@@ -68,18 +67,18 @@ public class ToDoList {
     }
 
     /**
-     * Adds an event to process later
-     * @param event
+     * Adds a phrase to process later
+     * @param phrase
      * @return 1 if successful
      */
-    public long addTask(ArchitectureFirstEvent event) {
+    public long addTask(ArchitectureFirstPhrase phrase) {
         if (isEnabled()) {
-            event.setAsToDoTask(true);
+            phrase.setAsToDoTask(true);
 
-            var entry = new ToDoListEntry(event.toFirstGroup(), event.getRequestId(), event.index());
-            event.setToDoLink(entry.toString());
+            var entry = new ToDoListEntry(phrase.toFirstGroup(), phrase.getRequestId(), phrase.index());
+            phrase.setToDoLink(entry.toString());
 
-            return jedis.hset(generateSignature(event.toFirstGroup()), entry.toString(), Status.Pending.status);
+            return jedis.hset(generateSignature(phrase.toFirstGroup()), entry.toString(), Status.Pending.status);
         }
 
         return NOT_EXECUTED;
@@ -87,15 +86,15 @@ public class ToDoList {
 
     /**
      * Completes a TO-DO task.
-     * @param event
+     * @param phrase
      * @return 1 if successful
      */
-    public long completeTask(ArchitectureFirstEvent event) {
+    public long completeTask(ArchitectureFirstPhrase phrase) {
         if (isEnabled()) {
-            ack.recordAcknowledgement(event);
-            jedis.hdel(generateSignature(event.toFirstGroup()), event.getToDoLink());  // delete if not owned
-            var entry = new ToDoListEntry(event.getTarget().get().name(), event.getRequestId(), event.index());
-            return jedis.hdel(generateSignature(event.toFirstGroup()), entry.toString());
+            ack.recordAcknowledgement(phrase);
+            jedis.hdel(generateSignature(phrase.toFirstGroup()), phrase.getToDoLink());  // delete if not owned
+            var entry = new ToDoListEntry(phrase.getTarget().get().name(), phrase.getRequestId(), phrase.index());
+            return jedis.hdel(generateSignature(phrase.toFirstGroup()), entry.toString());
         }
 
         return NOT_EXECUTED;
@@ -103,12 +102,12 @@ public class ToDoList {
 
     /**
      * Fails a TO-DO task.
-     * @param event
+     * @param phrase
      * @return 1 if successful
      */
-    public long failTask(ArchitectureFirstEvent event) {
+    public long failTask(ArchitectureFirstPhrase phrase) {
         if (isEnabled()) {
-            return jedis.hset(generateSignature(event.toFirstGroup()), event.getToDoLink(), Status.Failed.status);
+            return jedis.hset(generateSignature(phrase.toFirstGroup()), phrase.getToDoLink(), Status.Failed.status);
         }
 
         return NOT_EXECUTED;
@@ -143,7 +142,7 @@ public class ToDoList {
     }
 
     // Note: has side effects
-    public Optional<ArchitectureFirstEvent> acquireAvailableTask(String group, String requestor) {
+    public Optional<ArchitectureFirstPhrase> acquireAvailableTask(String group, String requestor) {
         if (isEnabled()) {
             AtomicReference<ToDoListEntry> ref = new AtomicReference<>();
 
@@ -155,8 +154,8 @@ public class ToDoList {
                     ref.set(entry);
                     return true;
                 } else if (!entry.hasOwner() || (entry.hasOwner() && !vicinity.actorIsAvailable(entry.getOwner()))) {
-                    var event = ack.getUnacknowledgedEvent(entry.getKey(), String.valueOf(entry.getIndex()));
-                    if (event != null) {
+                    var phrase = ack.getUnacknowledgedPhrase(entry.getKey(), String.valueOf(entry.getIndex()));
+                    if (phrase != null) {
                         reassignTask(entry.getGroup(), e.getKey());
                     } else {
                         closeTask(entry.getGroup(), e.getKey());
@@ -168,18 +167,18 @@ public class ToDoList {
 
             if (ref.get() != null) {
                 var entry = ref.get();
-                var event = ack.getUnacknowledgedEvent(entry.getKey(), String.valueOf(entry.getIndex()));
-                if (event != null) {        // there may be no events to process
+                var phrase = ack.getUnacknowledgedPhrase(entry.getKey(), String.valueOf(entry.getIndex()));
+                if (phrase != null) {        // there may be no phrases to process
                     if (StringUtils.isNotEmpty(entry.getOwner())) {
-                        event.setOriginalActorName(entry.getOwner());
+                        phrase.setOriginalActorName(entry.getOwner());
                     }
-                    event.shouldAwaitResponse(false);
+                    phrase.shouldAwaitResponse(false);
 
                     jedis.hdel(signature, entry.toString());
                     entry.setOwner(requestor);
                     jedis.hset(signature, entry.toString(), Status.InProgress.status);
 
-                    return Optional.of(event);
+                    return Optional.of(phrase);
                 } else {
                     closeTask(entry.getGroup(), entry.toString());
                 }

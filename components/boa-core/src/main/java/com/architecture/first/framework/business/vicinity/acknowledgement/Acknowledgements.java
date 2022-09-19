@@ -1,11 +1,10 @@
 package com.architecture.first.framework.business.vicinity.acknowledgement;
 
 import com.architecture.first.framework.business.vicinity.Vicinity;
-import com.architecture.first.framework.business.vicinity.events.AcknowledgementEvent;
 import com.architecture.first.framework.business.vicinity.info.VicinityInfo;
 import com.architecture.first.framework.business.vicinity.messages.VicinityMessage;
 import com.architecture.first.framework.technical.cache.JedisHCursor;
-import com.architecture.first.framework.technical.events.ArchitectureFirstEvent;
+import com.architecture.first.framework.technical.phrases.ArchitectureFirstPhrase;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -17,11 +16,11 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * A repository for the acknowledgement of the acceptance of events
+ * A repository for the acknowledgement of the acceptance of phrases
  */
 @Slf4j
 @Repository
-public class Acknowledgement {
+public class Acknowledgements {
 
     public enum Status {
         Unacknowledged ("Unacknowledged"),
@@ -39,9 +38,9 @@ public class Acknowledgement {
 
     public class Entry {
         private final String classname;
-        private final ArchitectureFirstEvent json;
+        private final ArchitectureFirstPhrase json;
 
-        protected Entry(String classname, ArchitectureFirstEvent json) {
+        protected Entry(String classname, ArchitectureFirstPhrase json) {
             this.classname = classname;
             this.json = json;
         }
@@ -65,21 +64,21 @@ public class Acknowledgement {
     private final String ackConnectionId = UUID.randomUUID().toString();
 
     /**
-     * Records an event that needs acknowledgement and has not been acknowledged yet
-     * @param event
-     * @return the item number of the event
+     * Records a phrase that needs acknowledgement and has not been acknowledged yet
+     * @param phrase
+     * @return the item number of the phrase
      */
-    public long recordUnacknowledgedEvent(ArchitectureFirstEvent event) {
+    public long recordUnacknowledgedPhrase(ArchitectureFirstPhrase phrase) {
         if (isEnabled()) {
-            if ((event.name().equals("SelfVicinityCheckupEvent"))) {
+            if ((phrase.name().equals("SelfVicinityCheckup"))) {
                 return 0;
             }
 
-            var ack = generateHandle(event.getRequestId(), Status.Unacknowledged);
+            var ack = generateHandle(phrase.getRequestId(), Status.Unacknowledged);
             var index = jedis.hincrBy(ack, INDEX, 1);
-            event.setIndex(index);
-            event.setOriginalActorName(event.toFirst());
-            var message = vicinity.generateMessage(event, event.toFirst());
+            phrase.setIndex(index);
+            phrase.setOriginalActorName(phrase.toFirst());
+            var message = vicinity.generateMessage(phrase, phrase.toFirst());
 
             // note: these calls should be in a transaction
 
@@ -93,11 +92,11 @@ public class Acknowledgement {
     }
 
     /**
-     * Removes an event that has been acknowledged
+     * Removes a phrase that has been acknowledged
      * @param requestId
      * @param index
      */
-    public void removeUnacknowledgedEvent(String requestId, long index) {
+    public void removeUnacknowledgedPhrase(String requestId, long index) {
         if (isEnabled()) {
             var ack = generateHandle(requestId, Status.Unacknowledged);
             jedis.hdel(ack, String.valueOf(index));
@@ -106,32 +105,32 @@ public class Acknowledgement {
 
     /**
      *
-     * @param event
+     * @param phrase
      * @return
      */
-    public long recordAcknowledgement(ArchitectureFirstEvent event) {
+    public long recordAcknowledgement(ArchitectureFirstPhrase phrase) {
         if (isEnabled()) {
-            if (event.name().equals("SelfVicinityCheckupEvent") || event.name().equals("AcknowledgementEvent")) {
+            if (phrase.name().equals("SelfVicinityCheckup") || phrase.name().equals("Acknowledgement")) {
                 return 0;
             }
 
-            var ack = generateHandle(event.getRequestId(), Status.Acknowledged);
-            var actor = event.getTarget().get();
-            var message = vicinity.generateMessage(event, event.toFirst());
+            var ack = generateHandle(phrase.getRequestId(), Status.Acknowledged);
+            var actor = phrase.getTarget().get();
+            var message = vicinity.generateMessage(phrase, phrase.toFirst());
 
             // note: these calls should be in a transaction
-            var index = event.index();
+            var index = phrase.index();
             if (!jedis.hexists(ack, String.valueOf(index))) {
                 jedis.hset(ack, String.valueOf(index), message.toString());
                 jedis.expire(ack, expirationSeconds);
 
-                removeUnacknowledgedEvent(event.getRequestId(), event.index());
+                removeUnacknowledgedPhrase(phrase.getRequestId(), phrase.index());
 
                 // To and From reversed for acknowledgement
-                var ackEvent = new AcknowledgementEvent(this, event.toFirst(), event.from())
-                        .setAcknowledgementEvent(event);
-                var ackMessage = vicinity.generateMessage(ackEvent, event.from());
-                vicinity.publishMessage(ackEvent.toFirst(), ackMessage.toString());
+                var ackPhrase = new com.architecture.first.framework.business.vicinity.phrases.Acknowledgement(this, phrase.toFirst(), phrase.from())
+                        .setAcknowledgementPhrase(phrase);
+                var ackMessage = vicinity.generateMessage(ackPhrase, phrase.from());
+                vicinity.publishMessage(ackPhrase.toFirst(), ackMessage.toString());
             }
 
             return index;
@@ -141,19 +140,19 @@ public class Acknowledgement {
     }
 
     /**
-     * Get an unacknowledged event by request d and index
+     * Get an unacknowledged phrase by request d and index
      * @param requestId
      * @param index
      * @return
      */
-    public ArchitectureFirstEvent getUnacknowledgedEvent(String requestId, String index) {
+    public ArchitectureFirstPhrase getUnacknowledgedPhrase(String requestId, String index) {
         if (isEnabled()) {
             var ack = generateHandle(requestId, Status.Unacknowledged);
             var json = jedis.hget(ack, index);
             if (StringUtils.isNotEmpty(json)) {
                 var message = VicinityMessage.from(json);
 
-                return ArchitectureFirstEvent.from(this, message);
+                return ArchitectureFirstPhrase.from(this, message);
             }
         }
 
@@ -161,7 +160,7 @@ public class Acknowledgement {
     }
 
     /**
-     * generate a handle to an event set for a given request
+     * generate a handle to a phrase set for a given request
      * @param requestId
      * @param status
      * @return
@@ -171,12 +170,12 @@ public class Acknowledgement {
     }
 
     /**
-     * Determines if a given event was acknowledged
+     * Determines if a given phrase was acknowledged
      * @param requestId
-     * @param eventName
+     * @param phraseName
      * @return
      */
-    public boolean hasAcknowledged(String requestId, String eventName) {
+    public boolean hasAcknowledged(String requestId, String phraseName) {
         if (isEnabled()) {
             var ack = generateHandle(requestId, Status.Acknowledged);
 
@@ -185,8 +184,8 @@ public class Acknowledgement {
             var cursor = new JedisHCursor(jedis);
             cursor.processAll(ack, e -> {
                 var vicinityMessage = VicinityMessage.from(e.getValue());
-                var event = (AcknowledgementEvent) ArchitectureFirstEvent.from(this, vicinityMessage);
-                if (event.getAcknowledgedEventName().equals(eventName)) {
+                var phrase = (com.architecture.first.framework.business.vicinity.phrases.Acknowledgement) ArchitectureFirstPhrase.from(this, vicinityMessage);
+                if (phrase.getAcknowledgedPhraseName().equals(phraseName)) {
                     hasPassed.set(true);
                     return true;
                 }

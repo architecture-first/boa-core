@@ -33,7 +33,7 @@ public class VicinityMessage implements Serializable {
      * @return the message
      */
     public VicinityMessage setPayload(Object payload, Type classType) {
-        header.setEventType(classType.getTypeName());
+        header.setPhraseType(classType.getTypeName());
         jsonPayload = new Gson().toJson(payload, classType);
 
         return this;

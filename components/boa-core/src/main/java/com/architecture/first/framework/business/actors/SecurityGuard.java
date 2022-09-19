@@ -1,12 +1,12 @@
 package com.architecture.first.framework.business.actors;
 
-import com.architecture.first.framework.business.vicinity.events.AcknowledgementEvent;
-import com.architecture.first.framework.business.vicinity.events.AnonymousOkEvent;
-import com.architecture.first.framework.business.vicinity.events.ErrorEvent;
-import com.architecture.first.framework.security.events.AccessRequestEvent;
-import com.architecture.first.framework.security.events.SecurityIncidentEvent;
-import com.architecture.first.framework.technical.events.ArchitectureFirstEvent;
-import com.architecture.first.framework.technical.events.CheckupEvent;
+import com.architecture.first.framework.business.vicinity.phrases.Acknowledgement;
+import com.architecture.first.framework.business.vicinity.phrases.AnonymousOk;
+import com.architecture.first.framework.business.vicinity.phrases.Error;
+import com.architecture.first.framework.security.phrases.AccessRequest;
+import com.architecture.first.framework.security.phrases.SecurityIncident;
+import com.architecture.first.framework.technical.phrases.ArchitectureFirstPhrase;
+import com.architecture.first.framework.technical.phrases.Checkup;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -85,7 +85,7 @@ public interface SecurityGuard {
      * @param event
      * @return true if not one of the excluded events
      */
-    static boolean needsAnAccessToken(ArchitectureFirstEvent event) {
+    static boolean needsAnAccessToken(ArchitectureFirstPhrase event) {
         return !isOkToProceed(event);
     }
 
@@ -98,14 +98,14 @@ public interface SecurityGuard {
      * @param event
      * @return true if the event is valid
      */
-    static boolean isOkToProceed(ArchitectureFirstEvent event) {
+    static boolean isOkToProceed(ArchitectureFirstPhrase event) {
         if (NON_SECURED_EVENTS.contains(event.type())) {
             return true;
         }
 
-        return event instanceof ErrorEvent || event instanceof AccessRequestEvent
-                || event instanceof CheckupEvent || event instanceof AcknowledgementEvent
-                || event instanceof AnonymousOkEvent
+        return event instanceof Error || event instanceof AccessRequest
+                || event instanceof Checkup || event instanceof Acknowledgement
+                || event instanceof AnonymousOk
                 || isTokenValid(event.getAccessToken());
     }
 
@@ -136,10 +136,10 @@ public interface SecurityGuard {
      * @param event
      * @return
      */
-    static ArchitectureFirstEvent replyToSender(ArchitectureFirstEvent event) {
+    static ArchitectureFirstPhrase replyToSender(ArchitectureFirstPhrase event) {
         Actor actor = determineTargetActor(event);
 
-        var incident = new SecurityIncidentEvent(actor, SECURITY_GUARD,  event.from(), event)
+        var incident = new SecurityIncident(actor, SECURITY_GUARD,  event.from(), event)
                 .setAsRequiresAcknowledgement(false);
 
         return actor.say(incident);
@@ -150,7 +150,7 @@ public interface SecurityGuard {
      * @param event
      * @return
      */
-    private static Actor determineTargetActor(ArchitectureFirstEvent event) {
+    private static Actor determineTargetActor(ArchitectureFirstPhrase event) {
         Actor actor = (event.getSource() instanceof Actor)
                 ? (Actor) event.getSource()
                 : (event.getTarget() != null && event.getTarget().isPresent())
@@ -164,11 +164,11 @@ public interface SecurityGuard {
      * @param message
      * @return
      */
-    public static ArchitectureFirstEvent reportError(ArchitectureFirstEvent event, String message) {
+    public static ArchitectureFirstPhrase reportError(ArchitectureFirstPhrase event, String message) {
         Actor actor = determineTargetActor(event);
         event.setHasErrors(true);
 
-        var incident = new SecurityIncidentEvent(actor, SECURITY_GUARD,  VICINITY_MONITOR, event);
+        var incident = new SecurityIncident(actor, SECURITY_GUARD,  VICINITY_MONITOR, event);
         incident.setAsRequiresAcknowledgement(false);
         incident.setMessage(message);
         incident.setHasErrors(true);

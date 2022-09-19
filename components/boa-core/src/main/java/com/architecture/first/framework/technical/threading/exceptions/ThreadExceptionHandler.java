@@ -1,7 +1,7 @@
 package com.architecture.first.framework.technical.threading.exceptions;
 
 import com.architecture.first.framework.business.actors.Actor;
-import com.architecture.first.framework.business.vicinity.events.UnhandledExceptionEvent;
+import com.architecture.first.framework.business.vicinity.phrases.UnhandledException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -23,6 +23,6 @@ public class ThreadExceptionHandler implements Thread.UncaughtExceptionHandler {
     public void uncaughtException(Thread t, Throwable e) {
         log.error("Error in thread: ", e);
 
-        actor.notice(new UnhandledExceptionEvent(this, "vicinity", actor.name()));
+        actor.notice(new UnhandledException(this, "vicinity", actor.name()));
     }
 }
