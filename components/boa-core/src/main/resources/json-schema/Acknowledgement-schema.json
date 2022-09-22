@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://boa.architecture-first.com/json-schema/acknowledgement",
+  "title": "Acknowledgement",
+  "description": "A phrase to represent acknowledgement of receipt of another phrase",
+  "type": "object",
+
+  "properties": {
+    "acknowledgedPhraseName": {
+      "description": "The name of the phrase that is acknowledged",
+      "type": "string"
+    },
+
+    "ArchitectureFirstPhrase": {
+      "description": "The phrase that is acknowledged",
+      "type": "com.architecture.first.framework.technical.phrases.ArchitectureFirstPhrase"
+    },
+
+    "header": {
+      "$ref": "http://boa.architecture-first.com/schema/boa-common"
+    }
+  },
+
+  "required": ["acknowledgedPhraseName", "ArchitectureFirstPhrase"]
+}

@@ -28,7 +28,7 @@ import java.util.function.Function;
 public class ArchitectureFirstPhrase extends ApplicationEvent {
     public static final String REQUEST_ID = "requestId";
     public static final String DEFAULT_PROJECT = "default";
-    public static final String ORIGINAL_EVENT_NAME = "originalPhraseName";
+    public static final String ORIGINAL_PHRASE_NAME = "originalPhraseName";
     public static final String FROM = "from";
     public static final String TO = "to";
     public static final String CUSTOMER_INFO = "customerInfo";
@@ -684,7 +684,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      * Returns whether the original phrase name exists
      * @return
      */
-    public boolean hasOriginalPhraseName() {return StringUtils.isNotEmpty((String) this.header().get(ORIGINAL_EVENT_NAME));}
+    public boolean hasOriginalPhraseName() {return StringUtils.isNotEmpty((String) this.header().get(ORIGINAL_PHRASE_NAME));}
 
     /**
      * Sets the original phrase name
@@ -693,7 +693,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      */
     public ArchitectureFirstPhrase setOriginalPhraseName(String name) {
         if (StringUtils.isNotEmpty(name)) {
-            this.header().put(ORIGINAL_EVENT_NAME, name);
+            this.header().put(ORIGINAL_PHRASE_NAME, name);
         }
         return this;
     }
@@ -702,7 +702,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      * Returns the original phrase name exists
      * @return
      */
-    public String originalPhraseName() {return (String) this.header().get(ORIGINAL_EVENT_NAME);}
+    public String originalPhraseName() {return (String) this.header().get(ORIGINAL_PHRASE_NAME);}
 
     /**
      * Sets the original phrase for tracking
