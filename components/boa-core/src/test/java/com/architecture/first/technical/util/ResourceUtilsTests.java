@@ -33,8 +33,9 @@ public class ResourceUtilsTests {
     public void mapJsonSchemaResources() {
         var utils = new ResourceUtils();
         var map = utils.mapJsonSchemaResources();
+        var contents = utils.getJsonContentAsString(map,"http://boa.architecture-first.com/json-schema/Acknowledgement");
 
-        new Gson().fromJson(map.get("http://boa.architecture-first.com/schema/boa-common"), Map.class);
+        new Gson().fromJson(contents, Map.class);
     }
 
     @Test

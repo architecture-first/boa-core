@@ -58,8 +58,24 @@ public class ResourceUtils {
         }
     }
 
-    public Map<String, String> mapJsonSchemaResources() {
-        Map<String, String> mapFiles = new HashMap<>();
+    public List<String> getContentsAsLines(File file) {
+        try {
+            List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+
+            return lines;
+        }
+        catch (Exception e) {
+            log.error("Unable to read json schema", e);
+            throw new VicinityException(e);
+        }
+    }
+
+    /**
+     * Produce a map of schemas
+     * @return
+     */
+    public Map<String, List<String>> mapJsonSchemaResources() {
+        Map<String, List<String>> mapFiles = new HashMap<>();
 
         try {
             var resources = getResources();
@@ -70,6 +86,39 @@ public class ResourceUtils {
                 mapFiles.put(idRef.get(), contents);
             }
 
+            var compiledFiles = compileJsonSchemas(mapFiles);
+            return compiledFiles;
+
+        }
+        catch (Exception e) {
+            log.error("Mapping error", e);
+            throw new VicinityException(e);
+        }
+
+    }
+
+    public Map<String, List<String>> compileJsonSchemas(Map<String, List<String>> rawSchemas) {
+        Map<String, List<String>> mapFiles = new HashMap<>();
+
+        try {
+            rawSchemas.entrySet().forEach(es -> {
+                List<String> outSchema = new ArrayList<>();
+                List<String> inSchema = es.getValue();
+                for (String line: inSchema
+                     ) {
+                    if (line.contains("$ref")) {
+                        var id = findID(line);
+                        var contents = getJsonContentAsString(rawSchemas, id);
+                        // replace string value
+                        outSchema.add(contents);
+                    }
+                    else {
+                        outSchema.add(line);
+                    }
+                }
+
+                mapFiles.put(es.getKey(), outSchema);
+            });
         }
         catch (Exception e) {
             log.error("Mapping error", e);
@@ -79,31 +128,52 @@ public class ResourceUtils {
         return mapFiles;
     }
 
-    public String getJsonSchemaContents(File file, AtomicReference<String> idRef) {
+    public String getJsonContentAsString(Map<String, List<String>> rawSchemas, String id) {
+        var lines = rawSchemas.get(id);
+        if (lines != null) {
+            return String.join("\n", lines);
+        }
+
+        return null;
+    }
+
+    public List<String> getJsonSchemaContents(File file, AtomicReference<String> idRef) {
 
         try {
-            List<String> lines;
-            lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+            List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
 
             lines.forEach( l -> {
                 if (l.indexOf("$id") > -1) {
-                    Pattern p = Pattern.compile("(?<=([\"']\\b))(?:(?=(\\\\?))\\2.)*?(?=\\1)");
-                    Matcher m = p.matcher(l);
-                    if (m.find()) {
-                        idRef.set(m.group());
-                    }
+                    findID(idRef, l);
                 }
             });
 
-            var contents = String.join("\n", lines);
-
-            return contents;
+            return lines;
         }
         catch (Exception e) {
             log.error("Unable to read json schema", e);
             throw new VicinityException(e);
         }
     }
+
+    private String findID(String l) {
+        Pattern p = Pattern.compile("(?<=([\"']\\b))(?:(?=(\\\\?))\\2.)*?(?=\\1)");
+        Matcher m = p.matcher(l);
+        if (m.find()) {
+            return m.group();
+        }
+
+        return null;
+    }
+
+    private void findID(AtomicReference<String> idRef, String l) {
+        Pattern p = Pattern.compile("(?<=([\"']\\b))(?:(?=(\\\\?))\\2.)*?(?=\\1)");
+        Matcher m = p.matcher(l);
+        if (m.find()) {
+            idRef.set(m.group());
+        }
+    }
+
 
     public List<Resource> getResources() {
         ClassLoader cl = this.getClass().getClassLoader();
