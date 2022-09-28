@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://boa.architecture-first.com/json-schema/VicinityBroken",
+  "title": "VicinityBroken",
+  "description": "Represents an event when an Actor's connection to the Vicinity is broken and is no long able to accept phrases",
+  "type": "object",
+  "implements": "Error",
+  "properties": {
+    "header": {
+      "$ref": "http://boa.architecture-first.com/schema/boa-common-header"
+    },
+    "payload": {
+      "description": "Particular data used as part of the phrase",
+      "type": "object",
+      "properties": {
+        "owner": {
+          "description": "The original owner of the phrase",
+          "type": "string"
+        },
+        "targetOwner": {
+          "description": "The target owner of the phrase",
+          "type": "string"
+        },
+        "vicinity": {
+          "description": "The vicinity for the phrase",
+          "type": "object",
+          "classType": "com.architecture.first.framework.business.vicinity.Vicinity"
+        }
+      }
+    },
+    "required": [
+      "payload.userToken"
+    ]
+  }
+}

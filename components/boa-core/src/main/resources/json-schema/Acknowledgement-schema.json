@@ -13,7 +13,8 @@
 
     "ArchitectureFirstPhrase": {
       "description": "The phrase that is acknowledged",
-      "type": "com.architecture.first.framework.technical.phrases.ArchitectureFirstPhrase"
+      "type": "object",
+      "classType": "com.architecture.first.framework.technical.phrases.ArchitectureFirstPhrase"
     },
 
     "header": {

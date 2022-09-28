@@ -4,7 +4,7 @@ import com.architecture.first.framework.business.vicinity.Vicinity;
 import com.architecture.first.framework.technical.phrases.ArchitectureFirstPhrase;
 
 /**
- * Represents an event when an Actor's connection to the Vicinity is broken and is no long able to accept events
+ * Represents an event when an Actor's connection to the Vicinity is broken and is no long able to accept phrases
  */
 public class VicinityConnectionBroken extends ArchitectureFirstPhrase implements Error {
 

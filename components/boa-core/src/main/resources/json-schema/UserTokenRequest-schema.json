@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://boa.architecture-first.com/json-schema/UserTokenRequest",
+  "title": "UserTokenRequest",
+  "description": "Represents a user token request for internal processing",
+  "type": "object",
+  "implements": "AccessRequest",
+  "properties": {
+    "header": {
+      "$ref": "http://boa.architecture-first.com/schema/boa-common-header"
+    },
+    "payload": {
+      "description": "Particular data used as part of the phrase",
+      "type": "object",
+      "properties": {
+        "userToken": {
+          "description": "User Token object",
+          "type": "object",
+          "classType": "com.architecture.first.framework.security.model.UserToken"
+        }
+      }
+    },
+    "required": [
+      "payload.userToken"
+    ]
+  }
+}

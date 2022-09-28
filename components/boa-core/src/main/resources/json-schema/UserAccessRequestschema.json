@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://boa.architecture-first.com/json-schema/UserAccessRequest",
+  "title": "UserAccessRequest",
+  "description": "Represents a request for an access token using User credentials",
+  "type": "object",
+  "implements": "AccessRequest",
+  "properties": {
+    "header": {
+      "$ref": "http://boa.architecture-first.com/schema/boa-common-header"
+    },
+    "payload": {
+      "description": "Particular data used as part of the phrase",
+      "type": "object",
+      "properties": {
+        "credentials": {
+          "description": "Credentials object",
+          "type": "object",
+          "classType": "com.architecture.first.framework.security.model.Credentials"
+        }
+      }
+    },
+    "required": [
+      "payload.credentials"
+    ]
+  }
+}
