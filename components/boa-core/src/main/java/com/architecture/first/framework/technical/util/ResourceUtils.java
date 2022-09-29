@@ -7,6 +7,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 
 import java.io.File;
+import java.lang.reflect.Type;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -24,11 +25,11 @@ import java.util.regex.Pattern;
 @Slf4j
 public class ResourceUtils {
 
-    public Map<String, String> mapResources() {
+/*    public Map<String, String> mapResources() {
         Map<String, String> mapFiles = new HashMap<>();
 
         try {
-            var resources = getResources();
+            var resources = getResources(this.getClass());
 
             for (var resource : resources) {
                 var contents = getContents(resource.getFile());
@@ -42,7 +43,7 @@ public class ResourceUtils {
         }
 
         return mapFiles;
-    }
+    }*/
     public String getContents(File file) {
         try {
             List<String> lines;
@@ -74,11 +75,11 @@ public class ResourceUtils {
      * Produce a map of schemas
      * @return
      */
-    public Map<String, List<String>> mapJsonSchemaResources() {
+    public Map<String, List<String>> mapJsonSchemaResources(Type cls, List<String> locationPatterns) {
         Map<String, List<String>> mapFiles = new HashMap<>();
 
         try {
-            var resources = getResources();
+            var resources = getResources(cls, locationPatterns);
 
             AtomicReference<String> idRef = new AtomicReference<>();
             for (var resource : resources) {
@@ -175,17 +176,19 @@ public class ResourceUtils {
     }
 
 
-    public List<Resource> getResources() {
-        ClassLoader cl = this.getClass().getClassLoader();
+    public List<Resource> getResources(Type cls, List<String> locationPatterns) {
+        ClassLoader cl = cls.getClass().getClassLoader();
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(cl);
         List<Resource> resourceList = new ArrayList<>();
 
         try {
-            var locationPattern = "json-schema/*.json";
-            Resource[] resources = resolver.getResources(locationPattern);
-            for (Resource r : resources) {
-                log.info(r.getFilename());
-                resourceList.add(r);
+            //var locationPattern = "json-schema/*.json";
+            for (String locationPattern : locationPatterns){
+                Resource[] resources = resolver.getResources(locationPattern);
+                for (Resource r : resources) {
+                    log.info(r.getFilename());
+                    resourceList.add(r);
+                }
             }
         }
         catch (Exception e) {

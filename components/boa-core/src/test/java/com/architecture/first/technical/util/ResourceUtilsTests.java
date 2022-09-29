@@ -18,6 +18,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -32,25 +33,30 @@ public class ResourceUtilsTests {
     @Test
     public void mapJsonSchemaResources() {
         var utils = new ResourceUtils();
-        var map = utils.mapJsonSchemaResources();
+        var map = utils.mapJsonSchemaResources(ResourceUtils.class,
+                new ArrayList<String>() {
+                    {
+                        add("json-schema/*.json");
+                    }
+                });
         var contents = utils.getJsonContentAsString(map,"http://boa.architecture-first.com/json-schema/Acknowledgement");
 
         new Gson().fromJson(contents, Map.class);
     }
 
     @Test
-    public void mapResources() {
-        var utils = new ResourceUtils();
-        var map = utils.mapResources();
-    }
-
-    @Test
     public void listResources() throws IOException {
         var utils = new ResourceUtils();
-        var resources = utils.getResources();
+        var resources = utils.getResources(ResourceUtils.class,
+                new ArrayList<String>() {
+                    {
+                        add("json-schema/*.json");
+                    }
+                }
+        );
 
         for (var resource : resources) {
-            utils.getContents(resource.getFile());
+            System.out.println(utils.getContents(resource.getFile()));
         }
 
     }
