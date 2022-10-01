@@ -6,7 +6,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 
-import java.io.File;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -56,6 +56,37 @@ public class ResourceUtils {
         catch (Exception e) {
             log.error("Unable to read json schema", e);
             throw new VicinityException(e);
+        }
+    }
+
+    public String getContents(URL url) {
+
+        BufferedReader br = null;
+        String str = null;
+        StringBuilder strb = new StringBuilder();
+
+        try {
+            br = new BufferedReader(
+                    new InputStreamReader(url.openStream()));
+            while ((str = br.readLine()) != null) {
+                strb.append(str).append("\n");
+            }
+
+            return strb.toString();
+        }
+        catch (Exception e) {
+            log.error("Unable to read json schema", e);
+            throw new VicinityException(e);
+        }
+        finally {
+            if (br != null) {
+                try {
+                    br.close();
+                }
+                catch (IOException e) {
+                    throw new VicinityException(e);
+                }
+            }
         }
     }
 

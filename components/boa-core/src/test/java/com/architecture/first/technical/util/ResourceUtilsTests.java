@@ -56,7 +56,7 @@ public class ResourceUtilsTests {
         );
 
         for (var resource : resources) {
-            System.out.println(utils.getContents(resource.getFile()));
+            System.out.println(utils.getContents(resource.getURL()));
         }
 
     }
