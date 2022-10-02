@@ -1,6 +1,7 @@
 package com.architecturefirst.boa.framework.technical.util;
 
 import com.architecturefirst.boa.framework.business.vicinity.exceptions.VicinityException;
+import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -11,10 +12,7 @@ import java.lang.reflect.Type;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,6 +22,8 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 public class ResourceUtils {
+
+    private Gson gson = new Gson();
 
 /*    public Map<String, String> mapResources() {
         Map<String, String> mapFiles = new HashMap<>();
@@ -102,24 +102,25 @@ public class ResourceUtils {
         }
     }
 
+    public String getContentsAsString(List<String> lines) {
+        return String.join("\n", lines);
+    }
+
+    public String getContentsAsString(Map<String,String> lines) {
+        return gson.toJson(lines);
+    }
+
+
     /**
      * Produce a map of schemas
      * @return
      */
-    public Map<String, List<String>> mapJsonSchemaResources(Type cls, List<String> locationPatterns) {
+    public Map<String, Map<String,String>> mapJsonSchemaResources() {
         Map<String, List<String>> mapFiles = new HashMap<>();
 
         try {
-            var resources = getResources(cls, locationPatterns);
-
-            AtomicReference<String> idRef = new AtomicReference<>();
-            for (var resource : resources) {
-                var contents = getJsonSchemaContents(resource.getFile(), idRef);
-                mapFiles.put(idRef.get(), contents);
-            }
-
-            var compiledFiles = compileJsonSchemas(mapFiles);
-            return compiledFiles;
+            var resources = getResources();
+            return compileResources(mapFiles, resources);
 
         }
         catch (Exception e) {
@@ -129,8 +130,38 @@ public class ResourceUtils {
 
     }
 
-    public Map<String, List<String>> compileJsonSchemas(Map<String, List<String>> rawSchemas) {
+    private Map<String, Map<String,String>> compileResources(Map<String, List<String>> mapFiles, List<Resource> resources) throws IOException {
+        AtomicReference<String> idRef = new AtomicReference<>();
+        for (var resource : resources) {
+            log.info("Processing resource: " + resource.getURL());
+            var contents = getJsonSchemaContents(resource, idRef);
+            mapFiles.put(idRef.get(), contents);
+        }
+
+        var compiledFiles = compileJsonSchemas(mapFiles);
+        return compiledFiles;
+    }
+
+    /**
+     * Produce a map of schemas
+     * @return
+     */
+    public Map<String, Map<String,String>> mapJsonSchemaResources(Type cls, List<String> locationPatterns) {
         Map<String, List<String>> mapFiles = new HashMap<>();
+
+        try {
+            var resources = getResources(cls, locationPatterns);
+            return compileResources(mapFiles, resources);
+        }
+        catch (Exception e) {
+            log.error("Mapping error", e);
+            throw new VicinityException(e);
+        }
+
+    }
+
+    public Map<String, Map<String,String>> compileJsonSchemas(Map<String, List<String>> rawSchemas) {
+        Map<String, Map<String,String>> mapCompiled = new LinkedHashMap<>();
 
         try {
             rawSchemas.entrySet().forEach(es -> {
@@ -140,7 +171,8 @@ public class ResourceUtils {
                      ) {
                     if (line.contains("$ref")) {
                         var id = findID(line);
-                        var contents = getJsonContentAsString(rawSchemas, id);
+                        var contents = getRawJsonContentAsString(rawSchemas, id)
+                                .replace("\n", "");
                         // replace string value
                         outSchema.add(contents);
                     }
@@ -149,7 +181,9 @@ public class ResourceUtils {
                     }
                 }
 
-                mapFiles.put(es.getKey(), outSchema);
+                String workData = String.join(" ", outSchema);
+                var compilation = gson.fromJson(workData, Map.class);
+                mapCompiled.put(es.getKey(), compilation);
             });
         }
         catch (Exception e) {
@@ -157,22 +191,38 @@ public class ResourceUtils {
             throw new VicinityException(e);
         }
 
-        return mapFiles;
+        return mapCompiled;
     }
 
-    public String getJsonContentAsString(Map<String, List<String>> rawSchemas, String id) {
+    public String getRawJsonContentAsString(Map<String, List<String>> rawSchemas, String id) {
         var lines = rawSchemas.get(id);
+        var workLines = new ArrayList();
+
+        // Skip starting and closing braces since nested in parent
+        for (int i=1; i<lines.size()-1; i++) {
+            workLines.add(lines.get(i));
+        }
         if (lines != null) {
-            return String.join("\n", lines);
+            return String.join("\n", workLines);
         }
 
         return null;
     }
 
-    public List<String> getJsonSchemaContents(File file, AtomicReference<String> idRef) {
+    public String getJsonContentAsString(Map<String, Map<String,String>> rawSchemas, String id) {
+        var lines = rawSchemas.get(id);
+        if (lines != null) {
+            return getContentsAsString(lines);
+        }
+
+        return null;
+    }
+
+    public List<String> getJsonSchemaContents(Resource resource, AtomicReference<String> idRef) {
 
         try {
-            List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+            String contents = getContents(resource.getURL());
+            List<String> lines = List.of(contents.split("\\n"));
 
             lines.forEach( l -> {
                 if (l.indexOf("$id") > -1) {
@@ -207,15 +257,35 @@ public class ResourceUtils {
     }
 
 
+    protected void onAddResourceLocationPattern(List<String> locationPatterns) {
+        locationPatterns.add("boa-core/json-schema/*.json");
+        locationPatterns.add("boa-actor/json-schema/*.json");
+        locationPatterns.add("my-actor/json-schema/*.json");
+    }
+
+    public List<Resource> getResources() {
+        var list = new ArrayList<String>();
+        onAddResourceLocationPattern(list);
+
+        return getResources(this.getClass(), list);
+    }
+
     public List<Resource> getResources(Type cls, List<String> locationPatterns) {
         ClassLoader cl = cls.getClass().getClassLoader();
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(cl);
         List<Resource> resourceList = new ArrayList<>();
 
         try {
-            //var locationPattern = "json-schema/*.json";
             for (String locationPattern : locationPatterns){
-                Resource[] resources = resolver.getResources(locationPattern);
+                Resource[] resources = null;
+                try {
+                    resources = resolver.getResources(locationPattern);
+                }
+                catch (Exception e) {
+                    // Do not fail for optional JSON Schema information
+                    log.warn("JSON Schema not found: " + e.getMessage());
+                    continue;
+                }
                 for (Resource r : resources) {
                     log.info(r.getFilename());
                     resourceList.add(r);

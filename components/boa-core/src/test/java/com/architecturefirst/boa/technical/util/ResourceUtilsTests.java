@@ -37,6 +37,16 @@ public class ResourceUtilsTests {
     @Test
     public void listResources() throws IOException {
         var utils = new ResourceUtils();
+        var schemaMap = utils.mapJsonSchemaResources();
+
+        for (var entry : schemaMap.entrySet()) {
+            System.out.println(utils.getContentsAsString(entry.getValue()));
+        }
+    }
+
+    @Test
+    public void listResourcesSpecifically() throws IOException {
+        var utils = new ResourceUtils();
         var resources = utils.getResources(ResourceUtils.class,
                 new ArrayList<String>() {
                     {
@@ -48,6 +58,5 @@ public class ResourceUtilsTests {
         for (var resource : resources) {
             System.out.println(utils.getContents(resource.getURL()));
         }
-
     }
 }
