@@ -26,7 +26,7 @@ public class ResourceUtilsTests {
         var map = utils.mapJsonSchemaResources(ResourceUtils.class,
                 new ArrayList<String>() {
                     {
-                        add("json-schema/*.json");
+                        add("boa-core/json-schema/*.json");
                     }
                 });
         var contents = utils.getJsonContentAsString(map,"http://boa.architecture-first.com/json-schema/Acknowledgement");
@@ -40,7 +40,7 @@ public class ResourceUtilsTests {
         var resources = utils.getResources(ResourceUtils.class,
                 new ArrayList<String>() {
                     {
-                        add("json-schema/*.json");
+                        add("boa-core/json-schema/*.json");
                     }
                 }
         );
