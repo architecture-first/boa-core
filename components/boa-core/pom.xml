@@ -10,7 +10,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.architecture.first</groupId>
+    <groupId>com.architecturefirst.boa</groupId>
     <artifactId>boa-core</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
