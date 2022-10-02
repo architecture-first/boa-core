@@ -25,25 +25,6 @@ public class ResourceUtils {
 
     private Gson gson = new Gson();
 
-/*    public Map<String, String> mapResources() {
-        Map<String, String> mapFiles = new HashMap<>();
-
-        try {
-            var resources = getResources(this.getClass());
-
-            for (var resource : resources) {
-                var contents = getContents(resource.getFile());
-                mapFiles.put(resource.getFilename(), contents);
-            }
-
-        }
-        catch (Exception e) {
-            log.error("Mapping error", e);
-            throw new VicinityException(e);
-        }
-
-        return mapFiles;
-    }*/
     public String getContents(File file) {
         try {
             List<String> lines;
