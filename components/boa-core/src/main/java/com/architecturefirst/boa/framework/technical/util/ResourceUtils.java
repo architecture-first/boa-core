@@ -2,6 +2,7 @@ package com.architecturefirst.boa.framework.technical.util;
 
 import com.architecturefirst.boa.framework.business.vicinity.exceptions.VicinityException;
 import com.google.gson.Gson;
+import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -91,12 +92,20 @@ public class ResourceUtils {
         return gson.toJson(lines);
     }
 
+    public String getContentsAsString(JsonSnippet snippet) {
+        return snippet.getSnippet();
+    }
+
+    public JsonSnippet getResult(String json, String jsonPath) {
+        return new JsonSnippet(json).getPathResult(jsonPath);
+    }
+
 
     /**
      * Produce a map of schemas
      * @return
      */
-    public Map<String, Map<String,String>> mapJsonSchemaResources() {
+    public Map<String, JsonSnippet> mapJsonSchemaResources() {
         Map<String, List<String>> mapFiles = new HashMap<>();
 
         try {
@@ -111,7 +120,7 @@ public class ResourceUtils {
 
     }
 
-    private Map<String, Map<String,String>> compileResources(Map<String, List<String>> mapFiles, List<Resource> resources) throws IOException {
+    private Map<String, JsonSnippet> compileResources(Map<String, List<String>> mapFiles, List<Resource> resources) throws IOException {
         AtomicReference<String> idRef = new AtomicReference<>();
         for (var resource : resources) {
             log.info("Processing resource: " + resource.getURL());
@@ -127,7 +136,7 @@ public class ResourceUtils {
      * Produce a map of schemas
      * @return
      */
-    public Map<String, Map<String,String>> mapJsonSchemaResources(Type cls, List<String> locationPatterns) {
+    public Map<String, JsonSnippet> mapJsonSchemaResources(Type cls, List<String> locationPatterns) {
         Map<String, List<String>> mapFiles = new HashMap<>();
 
         try {
@@ -141,8 +150,8 @@ public class ResourceUtils {
 
     }
 
-    public Map<String, Map<String,String>> compileJsonSchemas(Map<String, List<String>> rawSchemas) {
-        Map<String, Map<String,String>> mapCompiled = new LinkedHashMap<>();
+    public Map<String, JsonSnippet> compileJsonSchemas(Map<String, List<String>> rawSchemas) {
+        Map<String, JsonSnippet> mapCompiled = new LinkedHashMap<>();
 
         try {
             rawSchemas.entrySet().forEach(es -> {
@@ -164,7 +173,7 @@ public class ResourceUtils {
 
                 String workData = String.join(" ", outSchema);
                 var compilation = gson.fromJson(workData, Map.class);
-                mapCompiled.put(es.getKey(), compilation);
+                mapCompiled.put(es.getKey(), JsonSnippet.from(compilation));
             });
         }
         catch (Exception e) {
@@ -190,7 +199,7 @@ public class ResourceUtils {
         return null;
     }
 
-    public String getJsonContentAsString(Map<String, Map<String,String>> rawSchemas, String id) {
+    public String getJsonContentAsString(Map<String, JsonSnippet> rawSchemas, String id) {
         var lines = rawSchemas.get(id);
         if (lines != null) {
             return getContentsAsString(lines);

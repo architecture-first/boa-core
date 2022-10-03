@@ -73,17 +73,26 @@ public class BulletinBoard {
 
         String activeTopic = BULLETIN_BOARD_PREFIX + topic + "/Active";
         String awayTopic = BULLETIN_BOARD_PREFIX + topic + "/Away";
+        String busyTopic = BULLETIN_BOARD_PREFIX + topic + "/Busy";
         String goneTopic = BULLETIN_BOARD_PREFIX + topic + "/Gone";
 
         switch (value) {
             case "Gone":
                 jedis.hdel(activeTopic, name);
                 jedis.hdel(awayTopic, name);
+                jedis.hdel(busyTopic, name);
                 jedis.hset(goneTopic, name, statusString);
                 jedis.expire(goneTopic, expirationSeconds);
                 return;
+            case "Busy":
+                jedis.hdel(activeTopic, name);
+                jedis.hdel(awayTopic, name);
+                jedis.hset(busyTopic, name, statusString);
+                jedis.expire(busyTopic, expirationSeconds);
+                return;
             case "Away":
                 jedis.hdel(activeTopic, name);
+                jedis.hdel(busyTopic, name);
                 jedis.hset(awayTopic, name, statusString);
                 jedis.expire(awayTopic, expirationSeconds);
                 return;

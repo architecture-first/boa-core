@@ -15,6 +15,7 @@ public class BulletinBoardStatus {
         Active ("Active"),
         Missing ("Missing"),
         Away ("Away"),
+        Busy ("Busy"),
         Gone ("Gone");
 
         private final String status;

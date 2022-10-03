@@ -1,5 +1,6 @@
 package com.architecturefirst.boa.technical.util;
 
+import com.architecturefirst.boa.framework.technical.util.JsonSnippet;
 import com.architecturefirst.boa.framework.technical.util.ResourceUtils;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;

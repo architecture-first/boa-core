@@ -18,10 +18,10 @@
           "type": "object",
           "classType": "com.architecture.first.framework.security.model.Token"
         }
-      }
-    },
-    "required": [
-      "payload.token"
-    ]
+      },
+      "required": [
+        "payload.token"
+      ]
+    }
   }
 }
