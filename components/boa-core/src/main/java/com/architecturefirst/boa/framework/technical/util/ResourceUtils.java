@@ -2,7 +2,6 @@ package com.architecturefirst.boa.framework.technical.util;
 
 import com.architecturefirst.boa.framework.business.vicinity.exceptions.VicinityException;
 import com.google.gson.Gson;
-import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -96,7 +95,7 @@ public class ResourceUtils {
         return snippet.getSnippet();
     }
 
-    public JsonSnippet getResult(String json, String jsonPath) {
+    public JsonSnippet getResults(String json, String jsonPath) {
         return new JsonSnippet(json).getPathResult(jsonPath);
     }
 

@@ -42,7 +42,7 @@ public class JsonSnippet {
      * @return A map version of the snippet
      */
     JsonSnippet getPathResult(String jsonPath) {
-        return new JsonSnippet(JsonPath.read(snippet, jsonPath));
+        return JsonSnippet.from(JsonPath.read(snippet, jsonPath));
     }
 
     /**

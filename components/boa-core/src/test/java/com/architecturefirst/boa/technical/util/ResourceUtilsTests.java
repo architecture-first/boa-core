@@ -1,8 +1,6 @@
 package com.architecturefirst.boa.technical.util;
 
-import com.architecturefirst.boa.framework.technical.util.JsonSnippet;
 import com.architecturefirst.boa.framework.technical.util.ResourceUtils;
-import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,7 +9,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Map;
 
 /**
  * Load resources for the project
@@ -32,7 +29,8 @@ public class ResourceUtilsTests {
                 });
         var contents = utils.getJsonContentAsString(map,"http://boa.architecture-first.com/json-schema/Acknowledgement");
 
-        new Gson().fromJson(contents, Map.class);
+        System.out.println("output:");
+        System.out.println(utils.getResults(contents, "$.properties.header"));
     }
 
     @Test
