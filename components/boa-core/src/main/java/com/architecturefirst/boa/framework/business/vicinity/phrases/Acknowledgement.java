@@ -10,7 +10,7 @@ public class Acknowledgement extends ArchitectureFirstPhrase {
     private ArchitectureFirstPhrase acknowledgedPhrase;
 
     public Acknowledgement(Object source, String from, String to) {
-        super(source, "Acknowledgement", from, to);
+        super("Acknowledgement", from, to);
     }
 
     /**

@@ -267,7 +267,7 @@ public class VicinityProxy implements Vicinity {
                 }, channelFor(target));
             }
             catch(Exception e) {
-                var evt =  new VicinityConnectionBroken(this, "vicinity", owner.name())
+                var evt =  new VicinityConnectionBroken("vicinity", owner.name())
                         .setOwner(owner.name())
                         .setTargetOwner(target)
                         .setVicinity(this)

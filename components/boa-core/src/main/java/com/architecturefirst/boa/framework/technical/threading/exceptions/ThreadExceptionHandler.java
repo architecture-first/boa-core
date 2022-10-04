@@ -23,6 +23,6 @@ public class ThreadExceptionHandler implements Thread.UncaughtExceptionHandler {
     public void uncaughtException(Thread t, Throwable e) {
         log.error("Error in thread: ", e);
 
-        actor.notice(new UnhandledException(this, "vicinity", actor.name()));
+        actor.notice(new UnhandledException("Vicinity", actor.name()));
     }
 }

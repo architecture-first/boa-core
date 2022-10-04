@@ -14,16 +14,16 @@ public class SecurityIncident extends ArchitectureFirstPhrase implements Error {
     public static final String PHRASE_SECURITY_INCIDENT = "SecurityIncident";
     public static final String TOKEN = "token";
 
-    public SecurityIncident(Object source, String from, List<String> to) {
-        super(source, PHRASE_SECURITY_INCIDENT, from, to);
+    public SecurityIncident(String from, List<String> to) {
+        super(PHRASE_SECURITY_INCIDENT, from, to);
     }
 
-    public SecurityIncident(Object source, String from, String to) {
-        super(source, PHRASE_SECURITY_INCIDENT, from, to);
+    public SecurityIncident(String from, String to) {
+        super(PHRASE_SECURITY_INCIDENT, from, to);
     }
 
-    public SecurityIncident(Object source, String from, String to, ArchitectureFirstPhrase originalEvent) {
-        super(source, PHRASE_SECURITY_INCIDENT, from, to, originalEvent);
+    public SecurityIncident(String from, String to, ArchitectureFirstPhrase originalEvent) {
+        super(PHRASE_SECURITY_INCIDENT, from, to, originalEvent);
     }
 
     public SecurityIncident setCustomerToken(UserToken token) {

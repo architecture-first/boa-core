@@ -13,12 +13,12 @@ public class UserTokenRequest extends TokenRequest implements AccessRequest {
     public static final String PHRASE_USER_TOKEN_REQUEST = "UserTokenRequest";
     public static final String TOKEN = "token";
 
-    public UserTokenRequest(Object source, String from, List<String> to) {
-        super(source, PHRASE_USER_TOKEN_REQUEST, from, to, null);
+    public UserTokenRequest(String from, List<String> to) {
+        super(PHRASE_USER_TOKEN_REQUEST, from, to, null);
     }
 
-    public UserTokenRequest(Object source, String from, String to) {
-        super(source, PHRASE_USER_TOKEN_REQUEST, from, to);
+    public UserTokenRequest(String from, String to) {
+        super(PHRASE_USER_TOKEN_REQUEST, from, to);
     }
 
     public UserTokenRequest setUserToken(UserToken token) {

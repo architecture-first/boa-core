@@ -139,7 +139,7 @@ public interface SecurityGuard {
     static ArchitectureFirstPhrase replyToSender(ArchitectureFirstPhrase event) {
         Actor actor = determineTargetActor(event);
 
-        var incident = new SecurityIncident(actor, SECURITY_GUARD,  event.from(), event)
+        var incident = new SecurityIncident(SECURITY_GUARD,  event.from(), event)
                 .setAsRequiresAcknowledgement(false);
 
         return actor.say(incident);
@@ -168,7 +168,7 @@ public interface SecurityGuard {
         Actor actor = determineTargetActor(event);
         event.setHasErrors(true);
 
-        var incident = new SecurityIncident(actor, SECURITY_GUARD,  VICINITY_MONITOR, event);
+        var incident = new SecurityIncident(SECURITY_GUARD,  VICINITY_MONITOR, event);
         incident.setAsRequiresAcknowledgement(false);
         incident.setMessage(message);
         incident.setHasErrors(true);

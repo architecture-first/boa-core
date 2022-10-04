@@ -69,14 +69,13 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
 
     /**
      * Create a phrase
-     * @param source
      * @param name
      * @param from
      * @param to
      * @param originalPhrase
      */
-    public ArchitectureFirstPhrase(Object source, String name, String from, List<String> to, ArchitectureFirstPhrase originalPhrase) {
-        super(source);
+    public ArchitectureFirstPhrase(String name, String from, List<String> to, ArchitectureFirstPhrase originalPhrase) {
+        super("boa");
         this.name = name;
         header.put(FROM, from);
         header.put(TO, to);
@@ -91,46 +90,42 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
 
     /**
      * Create a phrase
-     * @param source
      * @param name
      * @param from
      * @param to
      */
-    public ArchitectureFirstPhrase(Object source, String name, String from, List<String> to) {
-        this(source, name, from, to, null);
+    public ArchitectureFirstPhrase(String name, String from, List<String> to) {
+        this(name, from, to, null);
     }
 
 
     /**
      * Create a phrase
-     * @param source
      * @param phraseToReplyTo
      */
-    public ArchitectureFirstPhrase(Object source, ArchitectureFirstPhrase phraseToReplyTo) {
-        this(source, phraseToReplyTo.name(), phraseToReplyTo.toFirst(), phraseToReplyTo.from(), phraseToReplyTo);
+    public ArchitectureFirstPhrase(ArchitectureFirstPhrase phraseToReplyTo) {
+        this(phraseToReplyTo.name(), phraseToReplyTo.toFirst(), phraseToReplyTo.from(), phraseToReplyTo);
     }
 
     /**
      *Create a phrase
-     * @param source
      * @param name
      * @param from
      * @param to
      */
-    public ArchitectureFirstPhrase(Object source, String name, String from, String to) {
-        this(source, name, from, new ArrayList<String>(Collections.singletonList(to)), null);
+    public ArchitectureFirstPhrase(String name, String from, String to) {
+        this(name, from, new ArrayList<String>(Collections.singletonList(to)), null);
     }
 
     /**
      * Create a phrase
-     * @param source
      * @param name
      * @param from
      * @param to
      * @param originPhrase
      */
-    public ArchitectureFirstPhrase(Object source, String name, String from, String to, ArchitectureFirstPhrase originPhrase) {
-        this(source, name, from, new ArrayList<String>(Collections.singletonList(to)), originPhrase);
+    public ArchitectureFirstPhrase(String name, String from, String to, ArchitectureFirstPhrase originPhrase) {
+        this(name, from, new ArrayList<String>(Collections.singletonList(to)), originPhrase);
     }
 
     protected String onGetRequestId() {
@@ -955,12 +950,11 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     /**
      * Returns an phrase based on an original phrase without the payload
      * @param from
-     * @param source
      * @param originalPhrase
      * @return return ArchitectureFirstPhrase object or null if error
      */
-    public static ArchitectureFirstPhrase fromForReplyWithoutPayload(Object source, String from, ArchitectureFirstPhrase originalPhrase) {
-        ArchitectureFirstPhrase replyPhrase = new ArchitectureFirstPhrase(source, originalPhrase.name(), from, originalPhrase.from());
+    public static ArchitectureFirstPhrase fromForReplyWithoutPayload(String from, ArchitectureFirstPhrase originalPhrase) {
+        ArchitectureFirstPhrase replyPhrase = new ArchitectureFirstPhrase(originalPhrase.name(), from, originalPhrase.from());
         replyPhrase.setOriginalPhrase(originalPhrase);
 
         return replyPhrase;
@@ -969,12 +963,11 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     /**
      * Returns an phrase based on an original phrase
      * @param from
-     * @param source
      * @param originalPhrase
      * @return return ArchitectureFirstPhrase object or null if error
      */
-    public static ArchitectureFirstPhrase fromForReply(Object source, String from, ArchitectureFirstPhrase originalPhrase) {
-        return fromForReply(source, originalPhrase.name(), originalPhrase.type(), from, originalPhrase, true);
+    public static ArchitectureFirstPhrase fromForReply(String from, ArchitectureFirstPhrase originalPhrase) {
+        return fromForReply(originalPhrase.name(), originalPhrase.type(), from, originalPhrase, true);
     }
 
 
@@ -983,12 +976,11 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      * @param from
      * @param name
      * @param type
-     * @param source
      * @param originalPhrase
      * @return return ArchitectureFirstPhrase object or null if error
      */
-    public static ArchitectureFirstPhrase fromForReply(Object source, String name, String type, String from, ArchitectureFirstPhrase originalPhrase, boolean includePayload) {
-        ArchitectureFirstPhrase replyPhrase = fromForReplyWithoutPayload(source, from, originalPhrase);
+    public static ArchitectureFirstPhrase fromForReply(String name, String type, String from, ArchitectureFirstPhrase originalPhrase, boolean includePayload) {
+        ArchitectureFirstPhrase replyPhrase = fromForReplyWithoutPayload(from, originalPhrase);
 
         if (includePayload) {
             replyPhrase.addPayload(originalPhrase.payload());

@@ -8,8 +8,8 @@ import com.architecturefirst.boa.framework.technical.phrases.ArchitectureFirstPh
  */
 public class VicinityConnectionBroken extends ArchitectureFirstPhrase implements Error {
 
-    public VicinityConnectionBroken(Object source, String from, String to) {
-        super(source, "VicinityConnectionBroken", from, to);
+    public VicinityConnectionBroken(String from, String to) {
+        super("VicinityConnectionBroken", from, to);
     }
 
     /**

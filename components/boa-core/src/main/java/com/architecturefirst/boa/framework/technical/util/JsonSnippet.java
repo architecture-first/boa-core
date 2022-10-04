@@ -59,7 +59,7 @@ public class JsonSnippet {
      * @param rawMap - The raw map
      * @return A JsonSnippet
      */
-    public static JsonSnippet from(Map<String,String> rawMap) {
+    public static JsonSnippet from(Map<String,Object> rawMap) {
         var json = new Gson().toJson(rawMap);
         return new JsonSnippet(json);
     }

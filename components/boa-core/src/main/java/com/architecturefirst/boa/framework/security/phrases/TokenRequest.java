@@ -13,32 +13,32 @@ public class TokenRequest extends ArchitectureFirstPhrase implements AccessReque
     public static final String PHRASE_TOKEN_REQUEST_EVENT = "TokenRequest";
     public static final String TOKEN = "token";
 
-    public TokenRequest(Object source, String from, List<String> to) {
-        this(source, from, to, null);
+    public TokenRequest(String from, List<String> to) {
+        this(from, to, null);
     }
 
-    public TokenRequest(Object source, String from, List<String> to, ArchitectureFirstPhrase originalEvent) {
-        super(source, PHRASE_TOKEN_REQUEST_EVENT, from, to, originalEvent);
+    public TokenRequest(String from, List<String> to, ArchitectureFirstPhrase originalEvent) {
+        super(PHRASE_TOKEN_REQUEST_EVENT, from, to, originalEvent);
     }
 
-    public TokenRequest(Object source, String phraseName, String from, List<String> to, ArchitectureFirstPhrase originalEvent) {
-        super(source, phraseName, from, to, originalEvent);
+    public TokenRequest(String phraseName, String from, List<String> to, ArchitectureFirstPhrase originalEvent) {
+        super(phraseName, from, to, originalEvent);
     }
 
-    public TokenRequest(Object source, String from, String to) {
-        this(source, PHRASE_TOKEN_REQUEST_EVENT, from, to);
+    public TokenRequest(String from, String to) {
+        this(PHRASE_TOKEN_REQUEST_EVENT, from, to);
     }
 
-    public TokenRequest(Object source, String from, String to, ArchitectureFirstPhrase originalEvent) {
-        this(source, PHRASE_TOKEN_REQUEST_EVENT, from, to, originalEvent);
+    public TokenRequest(String from, String to, ArchitectureFirstPhrase originalEvent) {
+        this(PHRASE_TOKEN_REQUEST_EVENT, from, to, originalEvent);
     }
 
-    public TokenRequest(Object source, String phraseName, String from, String to, ArchitectureFirstPhrase originalEvent) {
-        super(source, phraseName, from, to, originalEvent);
+    public TokenRequest(String phraseName, String from, String to, ArchitectureFirstPhrase originalEvent) {
+        super(phraseName, from, to, originalEvent);
     }
 
-    public TokenRequest(Object source, String phraseName, String from, String to) {
-        super(source, phraseName, from, to);
+    public TokenRequest(String phraseName, String from, String to) {
+        super(phraseName, from, to);
     }
 
     public TokenRequest setToken(Token token) {
