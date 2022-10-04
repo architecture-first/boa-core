@@ -777,6 +777,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
         return results;
     }
 
+
     /**
      * Returns an Object from a JSON string
      * @param jsonPath - JSON Path
