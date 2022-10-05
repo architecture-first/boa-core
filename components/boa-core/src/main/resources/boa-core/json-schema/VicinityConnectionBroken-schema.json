@@ -4,7 +4,7 @@
   "title": "VicinityConnectionBroken",
   "description": "Represents an event when an Actor's connection to the Vicinity is broken and is no longer able to accept phrases",
   "type": "object",
-  "implements": "Error",
+  "implementsType": "Error",
   "properties": {
     "header": {
       "$ref": "http://boa.architecture-first.com/schema/boa-common-header"

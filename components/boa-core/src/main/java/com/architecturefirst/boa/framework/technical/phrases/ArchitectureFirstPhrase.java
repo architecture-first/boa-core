@@ -36,14 +36,14 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     public static final String JWT_TOKEN = "jwtToken";
     public static final String BOA_CONN = "boa-conn";
     public static final String BOA_PROJECT = "boa-project";
-    public static String EVENT_ALL_PARTICIPANTS = "all";
+    public static String PHRASE_ALL_PARTICIPANTS = "all";
     private static final int requestIdSize = 20;
 
-    public static String EVENT_TYPE_ANONYMOUS_OK = "AnonymousOkPhrase";
-    public static String EVENT_TYPE_SECURED_BASIC = "SecuredBasic";
+    public static String PHRASE_TYPE_ANONYMOUS_OK = "AnonymousOk";
+    public static String PHRASE_TYPE_SECURED_BASIC = "SecuredBasic";
 
     private String name = "ArchitectureFirstPhrase";
-    private String type = EVENT_TYPE_ANONYMOUS_OK;
+    private String implementsType = PHRASE_TYPE_ANONYMOUS_OK;
     private SimpleModel header = new SimpleModel();
     private SimpleModel payload = new SimpleModel();
     private String message = "";
@@ -69,6 +69,17 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
 
     /**
      * Create a phrase
+     * @param from
+     * @param to
+     * @param originalPhrase
+     */
+    public ArchitectureFirstPhrase(String from, List<String> to, ArchitectureFirstPhrase originalPhrase) {
+        this("boa", from, to, originalPhrase);
+        this.name = this.getClass().getSimpleName();
+    }
+
+    /**
+     * Create a phrase
      * @param name
      * @param from
      * @param to
@@ -90,6 +101,16 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
 
     /**
      * Create a phrase
+     * @param from
+     * @param to
+     */
+    public ArchitectureFirstPhrase(String from, List<String> to) {
+        this("boa", from, to, null);
+        this.name = this.getClass().getSimpleName();
+    }
+
+    /**
+     * Create a phrase
      * @param name
      * @param from
      * @param to
@@ -98,13 +119,22 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
         this(name, from, to, null);
     }
 
-
     /**
      * Create a phrase
      * @param phraseToReplyTo
      */
     public ArchitectureFirstPhrase(ArchitectureFirstPhrase phraseToReplyTo) {
         this(phraseToReplyTo.name(), phraseToReplyTo.toFirst(), phraseToReplyTo.from(), phraseToReplyTo);
+    }
+
+    /**
+     *Create a phrase
+     * @param from
+     * @param to
+     */
+    public ArchitectureFirstPhrase(String from, String to) {
+        this("boa", from, new ArrayList<String>(Collections.singletonList(to)), null);
+        this.name = this.getClass().getSimpleName();
     }
 
     /**
@@ -119,6 +149,17 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
 
     /**
      * Create a phrase
+     * @param from
+     * @param to
+     * @param originPhrase
+     */
+    public ArchitectureFirstPhrase(String from, String to, ArchitectureFirstPhrase originPhrase) {
+        this("boa", from, new ArrayList<String>(Collections.singletonList(to)), originPhrase);
+        this.name = this.getClass().getSimpleName();
+    }
+
+    /**
+     * Create a phrase
      * @param name
      * @param from
      * @param to
@@ -127,7 +168,6 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     public ArchitectureFirstPhrase(String name, String from, String to, ArchitectureFirstPhrase originPhrase) {
         this(name, from, new ArrayList<String>(Collections.singletonList(to)), originPhrase);
     }
-
     protected String onGetRequestId() {
         return RandomStringUtils.randomAlphanumeric(requestIdSize);
     }
@@ -167,15 +207,15 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      * Returns the type of the phrase
      * @return
      */
-    public String type() {return type;}
+    public String type() {return implementsType;}
 
     /**
      * Sets the type of the phrase
-     * @param type
+     * @param implementsType
      * @return
      */
-    public ArchitectureFirstPhrase setType(String type) {
-        this.type = type;
+    public ArchitectureFirstPhrase setImplementsType(String implementsType) {
+        this.implementsType = implementsType;
         return this;
     }
 
@@ -184,7 +224,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      * @return
      */
     public ArchitectureFirstPhrase setAsSecured() {
-        this.type = EVENT_TYPE_SECURED_BASIC;
+        this.implementsType = PHRASE_TYPE_SECURED_BASIC;
         return this;
     }
 
@@ -193,7 +233,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      * @return
      */
     public boolean isSecured() {
-        return this.type.equals(EVENT_TYPE_SECURED_BASIC);
+        return this.implementsType.equals(PHRASE_TYPE_SECURED_BASIC);
     }
 
     /**
@@ -213,7 +253,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
         return this;
     }
     public boolean isType(Type type) {
-        return this.type.equals(type.getTypeName());
+        return this.implementsType.equals(type.getTypeName());
     }
 
     /**
@@ -529,7 +569,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      * Returns whether the phrase or related processing has errors
      * @return true if the phrase or related processing has errors
      */
-    public boolean isErrorPhrase() {return "Error".equals(type) || this instanceof Error;}
+    public boolean isErrorPhrase() {return "Error".equals(implementsType) || this instanceof Error;}
 
     /**
      * Returns the index that the phrase is by order in the UnAck (unacknowledged) or Ack (acknowledged) phrase list
@@ -988,7 +1028,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
         }
         replyPhrase.setAccessToken(originalPhrase.getAccessToken());
         replyPhrase.setName(name);
-        replyPhrase.setType(type);
+        replyPhrase.setImplementsType(type);
 
         if (originalPhrase.isSecured()) {
             replyPhrase.setAsSecured();

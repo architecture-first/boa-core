@@ -10,15 +10,14 @@ import java.util.Map;
  */
 public class UserTokenRequest extends TokenRequest implements AccessRequest {
 
-    public static final String PHRASE_USER_TOKEN_REQUEST = "UserTokenRequest";
     public static final String TOKEN = "token";
 
     public UserTokenRequest(String from, List<String> to) {
-        super(PHRASE_USER_TOKEN_REQUEST, from, to, null);
+        super(from, to, null);
     }
 
     public UserTokenRequest(String from, String to) {
-        super(PHRASE_USER_TOKEN_REQUEST, from, to);
+        super(from, to);
     }
 
     public UserTokenRequest setUserToken(UserToken token) {

@@ -4,7 +4,7 @@
   "title": "UserTokenReply",
   "description": "Represents the reply for a user token request",
   "type": "object",
-  "implements": "Error",
+  "implementsType": "Error",
   "properties": {
     "header": {
       "$ref": "http://boa.architecture-first.com/schema/boa-common-header"

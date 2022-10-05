@@ -10,7 +10,6 @@ import java.util.List;
  */
 public class TokenRequest extends ArchitectureFirstPhrase implements AccessRequest {
 
-    public static final String PHRASE_TOKEN_REQUEST_EVENT = "TokenRequest";
     public static final String TOKEN = "token";
 
     public TokenRequest(String from, List<String> to) {
@@ -18,27 +17,15 @@ public class TokenRequest extends ArchitectureFirstPhrase implements AccessReque
     }
 
     public TokenRequest(String from, List<String> to, ArchitectureFirstPhrase originalEvent) {
-        super(PHRASE_TOKEN_REQUEST_EVENT, from, to, originalEvent);
-    }
-
-    public TokenRequest(String phraseName, String from, List<String> to, ArchitectureFirstPhrase originalEvent) {
-        super(phraseName, from, to, originalEvent);
-    }
-
-    public TokenRequest(String from, String to) {
-        this(PHRASE_TOKEN_REQUEST_EVENT, from, to);
+        super(from, to, originalEvent);
     }
 
     public TokenRequest(String from, String to, ArchitectureFirstPhrase originalEvent) {
-        this(PHRASE_TOKEN_REQUEST_EVENT, from, to, originalEvent);
+        super(from, to, originalEvent);
     }
 
-    public TokenRequest(String phraseName, String from, String to, ArchitectureFirstPhrase originalEvent) {
-        super(phraseName, from, to, originalEvent);
-    }
-
-    public TokenRequest(String phraseName, String from, String to) {
-        super(phraseName, from, to);
+    public TokenRequest(String from, String to) {
+        super(from, to);
     }
 
     public TokenRequest setToken(Token token) {

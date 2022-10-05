@@ -9,15 +9,14 @@ import java.util.List;
  */
 public class UserAccessRequest extends TokenRequest implements AccessRequest {
 
-    public static final String PHRASE_USER_ACCESS_REQUEST = "UserAccessRequest";
     public static final String CREDENTIALS = "credentials";
 
     public UserAccessRequest(String from, List<String> to) {
-        super(PHRASE_USER_ACCESS_REQUEST, from, to, null);
+        super(from, to, null);
     }
 
     public UserAccessRequest(String from, String to) {
-        super(PHRASE_USER_ACCESS_REQUEST, from, to);
+        super(from, to);
     }
 
     public UserAccessRequest setCredentials(Credentials credentials) {

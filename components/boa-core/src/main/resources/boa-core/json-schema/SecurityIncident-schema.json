@@ -4,7 +4,7 @@
   "title": "SecurityIncident",
   "description": "Represents a security incident, such as an expired token",
   "type": "object",
-  "implements": "Error",
+  "implementsType": "Error",
   "properties": {
     "header": {
       "$ref": "http://boa.architecture-first.com/schema/boa-common-header"

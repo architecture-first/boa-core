@@ -10,7 +10,7 @@ public class DefaultLocal extends ArchitectureFirstPhrase implements Local {
      * @param requestId
      */
     public DefaultLocal(String requestId) {
-        super("DefaultLocal", "default", "default");
+        super("default", "default");
         setRequestId(requestId);
     }
 

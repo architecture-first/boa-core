@@ -4,7 +4,7 @@
   "title": "UserAccessRequest",
   "description": "Represents a request for an access token using User credentials",
   "type": "object",
-  "implements": "AccessRequest",
+  "implementsType": "AccessRequest",
   "properties": {
     "header": {
       "$ref": "http://boa.architecture-first.com/schema/boa-common-header"

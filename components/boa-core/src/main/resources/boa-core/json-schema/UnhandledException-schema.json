@@ -4,7 +4,7 @@
   "title": "UnhandledException",
   "description": "Represents a user token request for internal processing",
   "type": "object",
-  "implements": "Error",
+  "implementsType": "Error",
   "properties": {
     "header": {
       "$ref": "http://boa.architecture-first.com/schema/boa-common-header"

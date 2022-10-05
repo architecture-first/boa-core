@@ -9,7 +9,7 @@ import com.architecturefirst.boa.framework.technical.phrases.ArchitectureFirstPh
 public class VicinityConnectionBroken extends ArchitectureFirstPhrase implements Error {
 
     public VicinityConnectionBroken(String from, String to) {
-        super("VicinityConnectionBroken", from, to);
+        super(from, to);
     }
 
     /**

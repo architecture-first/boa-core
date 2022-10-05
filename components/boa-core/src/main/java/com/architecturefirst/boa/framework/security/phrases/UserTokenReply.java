@@ -11,7 +11,6 @@ import java.util.Map;
  */
 public class UserTokenReply extends TokenRequest implements AccessRequest {
 
-    public static final String PHRASE_USER_TOKEN_REPLY = "UserTokenReply";
     public static final String TOKEN = "token";
 
     public UserTokenReply(String from, List<String> to) {
@@ -19,7 +18,7 @@ public class UserTokenReply extends TokenRequest implements AccessRequest {
     }
 
     public UserTokenReply(String from, List<String> to, ArchitectureFirstPhrase originalEvent) {
-        super(PHRASE_USER_TOKEN_REPLY, from, to, originalEvent);
+        super(from, to, originalEvent);
     }
 
     public UserTokenReply(String from, String to) {
@@ -27,7 +26,7 @@ public class UserTokenReply extends TokenRequest implements AccessRequest {
     }
 
     public UserTokenReply(String from, String to, ArchitectureFirstPhrase originalEvent) {
-        super(PHRASE_USER_TOKEN_REPLY, from, to, originalEvent);
+        super(from, to, originalEvent);
     }
 
 

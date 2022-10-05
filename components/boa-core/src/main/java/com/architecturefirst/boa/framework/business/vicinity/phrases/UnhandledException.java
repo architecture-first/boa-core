@@ -8,7 +8,7 @@ import com.architecturefirst.boa.framework.technical.phrases.ArchitectureFirstPh
 public class UnhandledException extends ArchitectureFirstPhrase implements Error {
 
     public UnhandledException(String from, String to) {
-        super("UnhandledException", from, to);
+        super(from, to);
     }
 
     public void setException(Throwable t) {
