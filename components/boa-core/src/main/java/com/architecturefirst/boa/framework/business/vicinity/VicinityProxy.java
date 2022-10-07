@@ -62,7 +62,7 @@ public class VicinityProxy implements Vicinity {
     @Autowired
     private ApplicationEventPublisher publisher;
 
-    @Value("${vicinity.url:http://localhost:9991}")
+    @Value("${vicinity.url:http://localhost:19991}")
     private String vicinityUrl;
 
     @Value("${vicinity.processType:client}")

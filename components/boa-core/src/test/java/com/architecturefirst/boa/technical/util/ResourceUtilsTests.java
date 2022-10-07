@@ -27,7 +27,7 @@ public class ResourceUtilsTests {
                         add("boa-core/json-schema/*.json");
                     }
                 });
-        var contents = utils.getJsonContentAsString(map,"http://boa.architecture-first.com/json-schema/Acknowledgement");
+        var contents = utils.getJsonContentAsString(map,"http://boa.architecturefirst.com/json-schema/Acknowledgement");
 
         System.out.println("output:");
         System.out.println(utils.getResults(contents, "$.properties.header"));

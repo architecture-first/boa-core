@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "http://boa.architecture-first.com/json-schema/UnhandledException",
+  "$id": "http://boa.architecturefirst.com/json-schema/UnhandledException",
   "title": "UnhandledException",
   "description": "Represents a user token request for internal processing",
   "type": "object",
   "implementsType": "Error",
   "properties": {
     "header": {
-      "$ref": "http://boa.architecture-first.com/schema/boa-common-header"
+      "$ref": "http://boa.architecturefirst.com/schema/boa-common-header"
     },
     "payload": {
       "description": "Particular data used as part of the phrase",

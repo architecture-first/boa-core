@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "http://boa.architecture-first.com/schema/boa-common-header",
+  "$id": "http://boa.architecturefirst.com/schema/boa-common-header",
   "title": "boa-common-header",
   "description": "The common header phrase",
   "type": "object",
