@@ -57,10 +57,10 @@ public class ToDoList {
      * @param position - position in the UnAck list
      * @return 1 if successful
      */
-    public long addTask(String group, String key, long position) {
+    public long addTask(String areaName, String group, String key, long position) {
         if (isEnabled()) {
             var entry = new ToDoListEntry(group, key, position);
-            return jedis.hset(generateSignature(group), entry.toString(), Status.Pending.status);
+            return jedis.hset(generateSignature(areaName, group), entry.toString(), Status.Pending.status);
         }
 
         return NOT_EXECUTED;
@@ -78,7 +78,7 @@ public class ToDoList {
             var entry = new ToDoListEntry(phrase.toFirstGroup(), phrase.getRequestId(), phrase.index());
             phrase.setToDoLink(entry.toString());
 
-            return jedis.hset(generateSignature(phrase.toFirstGroup()), entry.toString(), Status.Pending.status);
+            return jedis.hset(generateSignature(phrase.area(), phrase.toFirstGroup()), entry.toString(), Status.Pending.status);
         }
 
         return NOT_EXECUTED;
@@ -92,9 +92,9 @@ public class ToDoList {
     public long completeTask(ArchitectureFirstPhrase phrase) {
         if (isEnabled()) {
             ack.recordAcknowledgement(phrase);
-            jedis.hdel(generateSignature(phrase.toFirstGroup()), phrase.getToDoLink());  // delete if not owned
+            jedis.hdel(generateSignature(phrase.area(), phrase.toFirstGroup()), phrase.getToDoLink());  // delete if not owned
             var entry = new ToDoListEntry(phrase.getTarget().get().name(), phrase.getRequestId(), phrase.index());
-            return jedis.hdel(generateSignature(phrase.toFirstGroup()), entry.toString());
+            return jedis.hdel(generateSignature(phrase.area(), phrase.toFirstGroup()), entry.toString());
         }
 
         return NOT_EXECUTED;
@@ -107,7 +107,7 @@ public class ToDoList {
      */
     public long failTask(ArchitectureFirstPhrase phrase) {
         if (isEnabled()) {
-            return jedis.hset(generateSignature(phrase.toFirstGroup()), phrase.getToDoLink(), Status.Failed.status);
+            return jedis.hset(generateSignature(phrase.area(), phrase.toFirstGroup()), phrase.getToDoLink(), Status.Failed.status);
         }
 
         return NOT_EXECUTED;
@@ -119,9 +119,9 @@ public class ToDoList {
      * @param key
      * @return 1 if successful
      */
-    public long reassignTask(String group, String key) {
+    public long reassignTask(String areaName, String group, String key) {
         if (isEnabled()) {
-            return jedis.hset(generateSignature(group), key, Status.Pending.status);
+            return jedis.hset(generateSignature(areaName, group), key, Status.Pending.status);
         }
 
         return NOT_EXECUTED;
@@ -133,32 +133,32 @@ public class ToDoList {
      * @param key
      * @return 1 if successful
      */
-    public long closeTask(String group, String key) {
+    public long closeTask(String areaName, String group, String key) {
         if (isEnabled()) {
-            return jedis.hdel(generateSignature(group), key);
+            return jedis.hdel(generateSignature(areaName, group), key);
         }
 
         return NOT_EXECUTED;
     }
 
     // Note: has side effects
-    public Optional<ArchitectureFirstPhrase> acquireAvailableTask(String group, String requestor) {
+    public Optional<ArchitectureFirstPhrase> acquireAvailableTask(String areaName, String group, String requestor) {
         if (isEnabled()) {
             AtomicReference<ToDoListEntry> ref = new AtomicReference<>();
 
             var cursor = new JedisHCursor(jedis);
-            var signature = generateSignature(group);
+            var signature = generateSignature(group, areaName);
             cursor.processAll(signature, e -> {
                 var entry = ToDoListEntry.from(e.getKey());
                 if (ref.get() == null && e.getValue().equals(Status.Pending.toString())) {
                     ref.set(entry);
                     return true;
-                } else if (!entry.hasOwner() || (entry.hasOwner() && !vicinity.actorIsAvailable(entry.getOwner()))) {
-                    var phrase = ack.getUnacknowledgedPhrase(entry.getKey(), String.valueOf(entry.getIndex()));
+                } else if (!entry.hasOwner() || (entry.hasOwner() && !vicinity.actorIsAvailable(areaName, entry.getOwner()))) {
+                    var phrase = ack.getUnacknowledgedPhrase(areaName, entry.getKey(), String.valueOf(entry.getIndex()));
                     if (phrase != null) {
-                        reassignTask(entry.getGroup(), e.getKey());
+                        reassignTask(phrase.area(), entry.getGroup(), e.getKey());
                     } else {
-                        closeTask(entry.getGroup(), e.getKey());
+                        closeTask(phrase.area(), entry.getGroup(), e.getKey());
                     }
                 }
 
@@ -167,7 +167,7 @@ public class ToDoList {
 
             if (ref.get() != null) {
                 var entry = ref.get();
-                var phrase = ack.getUnacknowledgedPhrase(entry.getKey(), String.valueOf(entry.getIndex()));
+                var phrase = ack.getUnacknowledgedPhrase(areaName, entry.getKey(), String.valueOf(entry.getIndex()));
                 if (phrase != null) {        // there may be no phrases to process
                     if (StringUtils.isNotEmpty(entry.getOwner())) {
                         phrase.setOriginalActorName(entry.getOwner());
@@ -180,7 +180,7 @@ public class ToDoList {
 
                     return Optional.of(phrase);
                 } else {
-                    closeTask(entry.getGroup(), entry.toString());
+                    closeTask(phrase.area(), entry.getGroup(), entry.toString());
                 }
 
                 return Optional.empty();
@@ -195,11 +195,11 @@ public class ToDoList {
      * @param group
      * @return
      */
-    private String generateSignature(String group) {
-        return String.format("%s:%s",TO_DO_LIST, group);
+    private String generateSignature(String areaName, String group) {
+        return String.format("boa.%s.%s:%s",TO_DO_LIST, areaName, group);
     }
 
     private boolean isEnabled() {
-        return vicinityInfo.getTodo().equals(VicinityInfo.VALUE_ENABLED);
+        return vicinityInfo.isTODOEnabled();
     }
 }

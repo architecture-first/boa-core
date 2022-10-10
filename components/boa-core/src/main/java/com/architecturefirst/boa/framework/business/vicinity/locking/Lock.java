@@ -17,7 +17,7 @@ public class Lock {
     public static final String NOT_OWNER_OF_THE_LOCK = "NOT_OWNER_OF_THE_LOCK";
     public static final String LOCK_DOES_NOT_EXIST = "LOCK_DOES_NOT_EXIST";
     public static int DEFAULT_LOCK_DURATION = 300; // 5 minutes
-    public static String LOCK_TEMPLATE = "Lock:%s";
+    public static String LOCK_TEMPLATE = "boa.Lock:%s";
 
     @Autowired
     private JedisPooled jedis;

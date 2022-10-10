@@ -15,7 +15,7 @@ public class TicketNumber {
     @Autowired
     private JedisPooled jedis;
 
-    public static String TICKET_NUMBERS = "TicketNumbers";
+    public static String TICKET_NUMBERS = "boa.TicketNumbers";
 
     /**
      * Sets a value for a ticket by name

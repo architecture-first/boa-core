@@ -1,8 +1,9 @@
 package com.architecturefirst.boa.framework.business.vicinity.info;
 
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.JedisPooled;
 
 /**
  * Contains information for the particular Vicinity
@@ -10,32 +11,97 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 public class VicinityInfo {
+
+    public static final String BOA_VICINITY_INFO = "boa.vicinity.info";
+    public static final String VALUE_VICINITY_NAME = ".name";
+    public static final String VALUE_VICINITY_ENV_TO_DO = "env.to-do";
+    public static final String VALUE_VICINITY_ENV_ACKNOWLEDGEMENT = "env.acknowledgement";
+    public static final String VALUE_VICINITY_ENV_ACTOR_ENTERED_PHRASE = "env.actor-entered-phrase";
+
+    public static final String VALUE_VICINITY_ENV_BULLETIN_BOARD_ENTRY_EXPIRATION_SECONDS = "env.bulletin.board.entry.expiration.seconds";
+    public static final String VALUE_VICINITY_ENV_VAULT_EXPIRATION_SECONDS = "env.vault.expiration.seconds";
+    public static final String VALUE_VICINITY_ENV_TASK_LIST_SECONDS = "env.task-list.expiration.seconds";
+    public static final String VALUE_VICINITY_ENV_ACKNOWLEDGEMENT_SECONDS = "env.acknowledgement.expiration.seconds";
+    public static final String VALUE_VICINITY_ENV_CONVERSATION_SECONDS = "env.conversation.expiration.seconds";
+
     public static String VALUE_ENABLED = "enabled";
     public static String VALUE_DISABLED = "disabled";
 
+    @Autowired
+    private JedisPooled jedis;
+
     public VicinityInfo() {}
 
-    public VicinityInfo(VicinityInfo info) {
-        from(info);
+
+    /**
+     * Gets the Vicinity name
+     * @return Vicinity name
+     */
+    public String getVicinityName() {
+        return jedis.hget(BOA_VICINITY_INFO,VALUE_VICINITY_NAME);
     }
 
-    public void from(VicinityInfo info) {
-        this.name = info.name;
-        this.todo = info.todo;
-        this.acknowledgement = info.acknowledgement;
-        this.actorEnteredPhrase = info.actorEnteredPhrase;
+    /**
+     * Gets the Vicinity TODO status
+     * @return TODO status
+     */
+    public boolean isTODOEnabled() {
+        return VALUE_ENABLED.equals(jedis.hget(BOA_VICINITY_INFO,VALUE_VICINITY_ENV_TO_DO));
     }
 
-    @Value("${vicinity.name:local-vicinity}")
-    private String name;
+    /**
+     * Gets the Vicinity acknowledgement status
+     * @return acknowledgement status
+     */
+    public boolean isAcknowledgementEnabled() {
+        return VALUE_ENABLED.equals(jedis.hget(BOA_VICINITY_INFO,VALUE_VICINITY_ENV_ACKNOWLEDGEMENT));
+    }
 
-    @Value("${vicinity.env.to-do:disabled}")
-    private String todo;
+    /**
+     * Gets the Vicinity entered-phrase status
+     * @return entered-phrase status
+     */
+    public boolean isActorEnteredPhraseEnabled() {
+        return VALUE_ENABLED.equals(jedis.hget(BOA_VICINITY_INFO,VALUE_VICINITY_ENV_ACTOR_ENTERED_PHRASE));
+    }
 
-    @Value("${vicinity.env.acknowledgement:disabled}")
-    private String acknowledgement;
+    /**
+     * The number of expiration seconds for a bulletin board entry
+     * @return expiration seconds
+     */
+    public long getBulletinBoardEntryExpirationSeconds() {
+        return Long.parseLong(jedis.hget(BOA_VICINITY_INFO,VALUE_VICINITY_ENV_BULLETIN_BOARD_ENTRY_EXPIRATION_SECONDS));
+    }
 
-    @Value("${vicinity.env.actor-entered-phrase:disabled}")
-    private String actorEnteredPhrase;
+    /**
+     * The number of expiration seconds for the vault
+     * @return expiration seconds
+     */
+    public long getVaultExpirationSeconds() {
+        return Long.parseLong(jedis.hget(BOA_VICINITY_INFO,VALUE_VICINITY_ENV_VAULT_EXPIRATION_SECONDS));
+    }
 
+    /**
+     * The number of expiration seconds for the task list
+     * @return expiration seconds
+     */
+    public long getTaskListExpirationSeconds() {
+        return Long.parseLong(jedis.hget(BOA_VICINITY_INFO,VALUE_VICINITY_ENV_VAULT_EXPIRATION_SECONDS));
+    }
+
+    /**
+     * The number of expiration seconds for an acknowledgement
+     * @return expiration seconds
+     */
+    public long getAcknowledgementExpirationSeconds() {
+        return Long.parseLong(jedis.hget(BOA_VICINITY_INFO,VALUE_VICINITY_ENV_VAULT_EXPIRATION_SECONDS));
+    }
+
+    /**
+     * The number of expiration seconds for a conversation
+     * @return expiration seconds
+     */
+    public long getConversationExpirationSeconds() {
+        return Long.parseLong(jedis.hget(BOA_VICINITY_INFO,VALUE_VICINITY_ENV_CONVERSATION_SECONDS));
+    }
 }

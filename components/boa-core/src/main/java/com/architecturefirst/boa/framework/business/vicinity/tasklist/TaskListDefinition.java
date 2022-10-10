@@ -9,7 +9,7 @@ import java.util.List;
  * Represents a task list definition
  */
 @Data
-public class TasklistDefinition {
+public class TaskListDefinition {
     private String name;
     private List<String> tasks = new ArrayList<>();
 }

@@ -12,6 +12,8 @@ public interface Actor {
     String name();
     String group();
 
+    String project();
+
     boolean isSecurityGuard();
 
     void onError(String s);

@@ -1,5 +1,6 @@
 package com.architecturefirst.boa.framework.business.vicinity.conversation;
 
+import com.architecturefirst.boa.framework.business.vicinity.info.VicinityInfo;
 import com.architecturefirst.boa.framework.technical.cache.JedisHCursor;
 import com.architecturefirst.boa.framework.technical.phrases.ArchitectureFirstPhrase;
 import com.google.gson.Gson;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import redis.clients.jedis.JedisPooled;
 
+import javax.annotation.PostConstruct;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -52,13 +54,23 @@ public class Conversation {
         public static Entry fromString(String json) {return gson.fromJson(json, Entry.class);}
     }
 
-    private final int expirationSeconds = 3600; //43200; // 12 hours
+    private long expirationSeconds = 3600; //default
     private static final Gson gson = new Gson();
-    public static String CONVO_TEMPLATE = "%s/Convo";
+    public static String CONVO_TEMPLATE = "boa.%s.%s/Conversation";
 
     @Autowired
     private JedisPooled jedis;
+
+    @Autowired
+    private VicinityInfo vicinityInfo;
+
     private final String convoConnectionId = UUID.randomUUID().toString();
+
+    @PostConstruct
+    public void init() {
+        log.info("conversationConnectionId: " + convoConnectionId);
+        expirationSeconds = vicinityInfo.getConversationExpirationSeconds();
+    }
 
     /**
      * Record the current state of the conversation
@@ -70,8 +82,8 @@ public class Conversation {
      * @param status - status of the conversation
      * @return
      */
-    public String record(String requestId, String subject, String from, String to, String index, Status status) {
-        var convo = generateSignature(requestId);
+    public String record(String area, String requestId, String subject, String from, String to, String index, Status status) {
+        var convo = generateSignature(area, requestId);
         var entry = new Entry(subject, from, to, index).toString();
         var rc = jedis.hset(convo, entry, status.toString()) == 1 ? entry : "ERROR_UNABLE_TO_RECORD_CONVO";
         jedis.expire(convo, expirationSeconds);
@@ -88,7 +100,7 @@ public class Conversation {
     public String record(ArchitectureFirstPhrase event, Status status) {
         return  (!event.name().equals("SelfVicinityCheckupEvent") && !event.name().equals("AcknowledgementEvent")
                 && !event.toFirst().equals("VicinityMonitor"))
-                ? record(event.getRequestId(), event.name(), event.from(), event.toFirst(), String.valueOf(event.index()), status)
+                ? record(event.area(), event.getRequestId(), event.name(), event.from(), event.toFirst(), String.valueOf(event.index()), status)
                 : "WARNING_CONVO_ENTRY_IGNORED";
     }
 
@@ -100,8 +112,8 @@ public class Conversation {
      * @param to
      * @return
      */
-    public boolean hasAcknowledged(String requestId, String eventName, String from, String to) {
-        var convo = generateSignature(requestId);
+    public boolean hasAcknowledged(String requestId, String areaName, String eventName, String from, String to) {
+        var convo = generateSignature(requestId, areaName);
 
         AtomicBoolean hasPassed = new AtomicBoolean(false);
 
@@ -129,7 +141,7 @@ public class Conversation {
      * @param requestId
      * @return
      */
-    private String generateSignature(String requestId) {
-        return String.format(CONVO_TEMPLATE, requestId);
+    private String generateSignature(String requestId, String areaName) {
+        return String.format(CONVO_TEMPLATE, areaName, requestId);
     }
  }

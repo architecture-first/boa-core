@@ -1,5 +1,6 @@
 package com.architecturefirst.boa.framework.business.vicinity.vault;
 
+import com.architecturefirst.boa.framework.business.vicinity.info.VicinityInfo;
 import com.architecturefirst.boa.framework.business.vicinity.locking.Lock;
 import com.architecturefirst.boa.framework.technical.util.DateUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -20,19 +21,24 @@ import java.util.UUID;
 @Repository
 public class Vault {
 
-    public static final String VAULT = "Vault";
+    public static final String VAULT = "boa.Vault";
+    public static final int VAULT_IS_OK_CHECKUP_SECONDS = 120;
     @Autowired
     private JedisPooled jedis;
+
+    @Autowired
+    private VicinityInfo vicinityInfo;
 
     @Autowired
     private Lock lock;
 
     private final String vaultConnectionId = UUID.randomUUID().toString();
-    private final int expirationSeconds = 86400;
+    private long expirationSeconds = 86400;
 
     @PostConstruct
     public void init() {
         log.info("vaultConnectionId: " + vaultConnectionId);
+        expirationSeconds = vicinityInfo.getVaultExpirationSeconds();
     }
 
     /**
@@ -75,9 +81,9 @@ public class Vault {
      */
     public boolean isOk() {
         try {
-            String taskListPath = "environment/health/vault";
+            String taskListPath = "boa.environment/health/vault";
             jedis.hset(taskListPath, "TL" + vaultConnectionId, ZonedDateTime.now(ZoneId.of("GMT")).toString());
-            jedis.expire(taskListPath, 120);
+            jedis.expire(taskListPath, VAULT_IS_OK_CHECKUP_SECONDS);
         }
         catch(Exception e) {
             log.error("Health Check Error: " + e);

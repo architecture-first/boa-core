@@ -8,7 +8,7 @@ import java.time.ZonedDateTime;
 /**
  * Represents an entry in a task list
  */
-public class TasklistEntry {
+public class TaskListEntry {
     public enum Status {
         Pending ("Pending"),
         InProgress ("InProgress"),
@@ -23,17 +23,17 @@ public class TasklistEntry {
         }
     }
 
-    private TasklistEntry.Status status;
+    private TaskListEntry.Status status;
     private String message;
     private String timeStamp;
 
-    public TasklistEntry(TasklistEntry.Status status, String message) {
+    public TaskListEntry(TaskListEntry.Status status, String message) {
         this.status = status;
         this.message = message;
         touch();
     }
 
-    public void setStatus(TasklistEntry.Status status) {
+    public void setStatus(TaskListEntry.Status status) {
         this.status = status;
         touch();
     }
@@ -47,7 +47,7 @@ public class TasklistEntry {
     }
 
     private String formatEntry() {
-        return new Gson().toJson(this, TasklistEntry.class);
+        return new Gson().toJson(this, TaskListEntry.class);
     }
 
     public String toString() {

@@ -27,7 +27,7 @@ public class Queue {
     private long expirationSeconds;
     private final int waitTimeount = 60;
 
-    private static final String QUEUE_PREFIX = "queue/";
+    private static final String QUEUE_PREFIX = "boa.queue/";
     private final Gson gson = new Gson();
 
     @PostConstruct

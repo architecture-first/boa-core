@@ -36,6 +36,8 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     public static final String JWT_TOKEN = "jwtToken";
     public static final String BOA_CONN = "boa-conn";
     public static final String BOA_PROJECT = "boa-project";
+    public static final String BOA_TTL = "boa-ttl"; // Time to live
+    public static final String AREA_NAME = "areaName";
     public static String PHRASE_ALL_PARTICIPANTS = "all";
     private static final int requestIdSize = 20;
 
@@ -90,6 +92,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
         this.name = name;
         header.put(FROM, from);
         header.put(TO, to);
+        header.put(BOA_TTL, 1); // default to 1
         if (originalPhrase != null) {
             setOriginalPhrase(originalPhrase);
         }
@@ -257,10 +260,41 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     }
 
     /**
+     * Returns whether the name of the phrase matches the argument
+     * @param nameOfPhrase
+     * @return true if the name matches the argument
+     */
+    public boolean is(String nameOfPhrase) {return StringUtils.isNotEmpty(name) ? name.equals(nameOfPhrase): false;}
+
+    /**
+     * Returns whether the event is for all actors in an area
+     * @return true if the event is for all actors in an area
+     */
+    public boolean isForAll() {return PHRASE_ALL_PARTICIPANTS.equals(toFirst());}
+
+
+    /**
      * Returns the name of the phrase
      * @return
      */
     public String name() {return StringUtils.isNotEmpty(name) ? name : getClass().getSimpleName();}
+
+    /**
+     * Returns the area the phrase is in
+     * @return
+     */
+    public String area() {return (String) this.header.get(AREA_NAME);}
+
+
+    /**
+     * Sets the name of the area
+     * @param name
+     * @return ArchitectureFirstPhrase
+     */
+    public ArchitectureFirstPhrase setArea(String name) {
+        this.header.put(AREA_NAME, name);
+        return this;
+    }
 
     /**
      * Returns the subject of the phrase
@@ -328,6 +362,23 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
         header.put(FROM, name);
         return this;
     }
+
+    /**
+     * Sets the Time to Live.
+     * @param ttlValue
+     * @return ArchitectureFirstPhrase
+     */
+    public ArchitectureFirstPhrase setTTL(int ttlValue) {
+        header.put(BOA_TTL, String.valueOf(ttlValue));
+        return this;
+    }
+
+    /**
+     * Returns the source
+     * @return
+     */
+    public int ttl() {return Integer.parseInt((String) header.get(BOA_TTL));}
+
 
     /**
      * Sets the source.

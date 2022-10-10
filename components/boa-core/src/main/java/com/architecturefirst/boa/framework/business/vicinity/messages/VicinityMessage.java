@@ -1,5 +1,6 @@
 package com.architecturefirst.boa.framework.business.vicinity.messages;
 
+import com.architecturefirst.boa.framework.technical.phrases.ArchitectureFirstPhrase;
 import com.google.gson.Gson;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -70,6 +71,13 @@ public class VicinityMessage implements Serializable {
     public String subject() {
         return header.getSubject();
     }
+
+
+    /**
+     * Returns whether the event is for all actors in an area
+     * @return true if the event is for all actors in an area
+     */
+    public boolean isForAll() {return ArchitectureFirstPhrase.PHRASE_ALL_PARTICIPANTS.equals(to());}
 
     /**
      * Returns this object as a JSON string

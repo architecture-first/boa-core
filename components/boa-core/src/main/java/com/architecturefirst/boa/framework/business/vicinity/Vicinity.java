@@ -13,8 +13,8 @@ public interface Vicinity {
     void subscribe(Actor owner, String target, BiFunction<Actor, ArchitectureFirstPhrase, Void> fnCallback);
     void unsubscribe(String target);
     boolean areConnectionsOk(String target, int numberOfConnections);
-    String findActor(String type, String project);
-    String findActor(String type);
-    boolean actorIsAvailable(String name);
+    String findActor(String type, String area, String project);
+    String findActor(String type, String area);
+    boolean actorIsAvailable(String name, String area);
 
 }

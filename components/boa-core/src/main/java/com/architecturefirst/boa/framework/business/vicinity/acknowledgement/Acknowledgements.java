@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import redis.clients.jedis.JedisPooled;
 
+import javax.annotation.PostConstruct;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -48,7 +49,7 @@ public class Acknowledgements {
         public String toString() {var json = gson.toJson(this); return json;}
     }
 
-    private final int expirationSeconds = 3600; //43200; // 12 hours
+    private long expirationSeconds = 3600;  // default
     private static final Gson gson = new Gson();
     public static String ACK_TEMPLATE = "Ack";
     public static String UNACK_TEMPLATE = "UnAck";
@@ -64,6 +65,12 @@ public class Acknowledgements {
 
     private final String ackConnectionId = UUID.randomUUID().toString();
 
+    @PostConstruct
+    public void init() {
+        log.info("task-listConnectionId: " + ackConnectionId);
+        expirationSeconds = vicinityInfo.getAcknowledgementExpirationSeconds();
+    }
+
     /**
      * Records a phrase that needs acknowledgement and has not been acknowledged yet
      * @param phrase
@@ -75,7 +82,7 @@ public class Acknowledgements {
                 return 0;
             }
 
-            var ack = generateHandle(phrase.getRequestId(), Status.Unacknowledged);
+            var ack = generateHandle(phrase.getRequestId(), phrase.area(), Status.Unacknowledged);
             var index = jedis.hincrBy(ack, INDEX, 1);
             phrase.setIndex(index);
             phrase.setOriginalActorName(phrase.toFirst());
@@ -97,9 +104,9 @@ public class Acknowledgements {
      * @param requestId
      * @param index
      */
-    public void removeUnacknowledgedPhrase(String requestId, long index) {
+    public void removeUnacknowledgedPhrase(String area, String requestId, long index) {
         if (isEnabled()) {
-            var ack = generateHandle(requestId, Status.Unacknowledged);
+            var ack = generateHandle(area, requestId, Status.Unacknowledged);
             jedis.hdel(ack, String.valueOf(index));
         }
     }
@@ -115,7 +122,7 @@ public class Acknowledgements {
                 return 0;
             }
 
-            var ack = generateHandle(phrase.getRequestId(), Status.Acknowledged);
+            var ack = generateHandle(phrase.area(), phrase.getRequestId(), Status.Acknowledged);
             var actor = phrase.getTarget().get();
             var message = vicinity.generateMessage(phrase, phrase.toFirst());
 
@@ -125,7 +132,7 @@ public class Acknowledgements {
                 jedis.hset(ack, String.valueOf(index), message.toString());
                 jedis.expire(ack, expirationSeconds);
 
-                removeUnacknowledgedPhrase(phrase.getRequestId(), phrase.index());
+                removeUnacknowledgedPhrase(phrase.area(), phrase.getRequestId(), phrase.index());
 
                 // To and From reversed for acknowledgement
                 var ackPhrase = new Acknowledgement(this, phrase.toFirst(), phrase.from())
@@ -146,9 +153,9 @@ public class Acknowledgements {
      * @param index
      * @return
      */
-    public ArchitectureFirstPhrase getUnacknowledgedPhrase(String requestId, String index) {
+    public ArchitectureFirstPhrase getUnacknowledgedPhrase(String area, String requestId, String index) {
         if (isEnabled()) {
-            var ack = generateHandle(requestId, Status.Unacknowledged);
+            var ack = generateHandle(area, requestId, Status.Unacknowledged);
             var json = jedis.hget(ack, index);
             if (StringUtils.isNotEmpty(json)) {
                 var message = VicinityMessage.from(json);
@@ -166,8 +173,8 @@ public class Acknowledgements {
      * @param status
      * @return
      */
-    private String generateHandle(String requestId, Status status) {
-        return String.format("%s/%s", requestId,  (status == Status.Acknowledged) ? ACK_TEMPLATE : UNACK_TEMPLATE);
+    private String generateHandle(String requestId, String area, Status status) {
+        return String.format("%s.%s/%s", area, requestId,  (status == Status.Acknowledged) ? ACK_TEMPLATE : UNACK_TEMPLATE);
     }
 
     /**
@@ -176,9 +183,9 @@ public class Acknowledgements {
      * @param phraseName
      * @return
      */
-    public boolean hasAcknowledged(String requestId, String phraseName) {
+    public boolean hasAcknowledged(String area, String requestId, String phraseName) {
         if (isEnabled()) {
-            var ack = generateHandle(requestId, Status.Acknowledged);
+            var ack = generateHandle(area, requestId, Status.Acknowledged);
 
             AtomicBoolean hasPassed = new AtomicBoolean(false);
 
@@ -201,6 +208,6 @@ public class Acknowledgements {
     }
 
     private boolean isEnabled() {
-        return vicinityInfo.getAcknowledgement().equals(VicinityInfo.VALUE_ENABLED);
+        return vicinityInfo.isAcknowledgementEnabled();
     }
  }

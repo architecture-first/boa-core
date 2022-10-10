@@ -8,7 +8,7 @@ import lombok.Data;
  */
 @Data
 @AllArgsConstructor
-public class TasklistConnection {
+public class TaskListConnection {
     private String taskList;
     private String task;
 }

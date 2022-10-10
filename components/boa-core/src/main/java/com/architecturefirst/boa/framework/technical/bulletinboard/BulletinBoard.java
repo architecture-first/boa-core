@@ -1,5 +1,6 @@
 package com.architecturefirst.boa.framework.technical.bulletinboard;
 
+import com.architecturefirst.boa.framework.business.vicinity.info.VicinityInfo;
 import com.architecturefirst.boa.framework.technical.cache.JedisHCursor;
 import com.architecturefirst.boa.framework.technical.util.DateUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -25,15 +26,18 @@ public class BulletinBoard {
 
     @Autowired
     private JedisPooled jedis;
-    private final String bulletinBoardConnectionId = UUID.randomUUID().toString();
 
-    @Value("${vicinity.bulletin-board.items.default-expiration-seconds:3600}")
+    @Autowired
+    private VicinityInfo vicinityInfo;
+
+    private final String bulletinBoardConnectionId = UUID.randomUUID().toString();
     private long expirationSeconds;
-    private static final String BULLETIN_BOARD_PREFIX = "BulletinBoard:topic/";
+    private static final String BULLETIN_BOARD_PREFIX = "boa.BulletinBoard:topic/";
 
     @PostConstruct
     public void init() {
         log.info("bulletinBoardConnectionId: " + bulletinBoardConnectionId);
+        expirationSeconds = vicinityInfo.getBulletinBoardEntryExpirationSeconds();
     }
 
     /**
@@ -68,13 +72,13 @@ public class BulletinBoard {
      * @param statusString
      */
     // default to date based topics
-    public void postStatusTopic(String topic, String name, String value, String statusString) {
+    public void postStatusTopic(String topic, String area, String name, String value, String statusString) {
         topic = DateUtils.appendDaily(topic);
 
-        String activeTopic = BULLETIN_BOARD_PREFIX + topic + "/Active";
-        String awayTopic = BULLETIN_BOARD_PREFIX + topic + "/Away";
-        String busyTopic = BULLETIN_BOARD_PREFIX + topic + "/Busy";
-        String goneTopic = BULLETIN_BOARD_PREFIX + topic + "/Gone";
+        String activeTopic = getFormat(topic, area, "Active");
+        String awayTopic = getFormat(topic, area, "Away");
+        String busyTopic = getFormat(topic, area, "Busy");
+        String goneTopic = getFormat(topic, area, "Gone");
 
         switch (value) {
             case "Gone":
@@ -101,6 +105,10 @@ public class BulletinBoard {
         jedis.expire(activeTopic, expirationSeconds);
 
         clearIdleTopicEntries(activeTopic, awayTopic);
+    }
+
+    private String getFormat(String topic, String area, String status) {
+        return String.format("boa.%s%s.%s/%s",BULLETIN_BOARD_PREFIX, area, topic, status);
     }
 
     /**
@@ -197,7 +205,7 @@ public class BulletinBoard {
      */
     public boolean isOk() {
         try {
-            String bulletinboardPath = "environment/health/bulletinboard";
+            String bulletinboardPath = "boa.environment/health/bulletinboard";
             jedis.hset(bulletinboardPath, "BB" + bulletinBoardConnectionId, ZonedDateTime.now(ZoneId.of("GMT")).toString());
             jedis.expire(bulletinboardPath, expirationSeconds);
         }

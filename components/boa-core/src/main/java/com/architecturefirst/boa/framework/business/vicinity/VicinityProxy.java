@@ -113,10 +113,6 @@ public class VicinityProxy implements Vicinity {
      */
     @PostConstruct
     protected void init() {
-        if (!vicinityProcessType.equals("server")) {
-            var info = getInfo("api/vicinity/info");
-            vicinityInfo.from(info);
-        }
     }
 
     /**
@@ -309,14 +305,14 @@ public class VicinityProxy implements Vicinity {
      * @return
      */
 
-    protected String findActiveActor(String type, String project) {
-        var workQueueKey = String.format("%s.%s", type,
+    protected String findActiveActor(String type, String area, String project) {
+        var workQueueKey = String.format("%s.%s.%s", area, type,
                 StringUtils.isNotEmpty(project) ? project : ArchitectureFirstPhrase.DEFAULT_PROJECT);
         if (!workQueueMap.containsKey(workQueueKey) || currentWorkforceSize.get(workQueueKey) == 0 ||
                 ( workQueueMap.get(workQueueKey).size() < currentWorkforceSize.get(workQueueKey))) {
 
             try (Jedis jedisDedicated = new Jedis(redisHost, redisPort)) {
-                String roster = getRoster(type);
+                String roster = getRoster(type, area);
 
                 String cursor = "0";
                 ScanParams scanParams = new ScanParams()
@@ -332,7 +328,7 @@ public class VicinityProxy implements Vicinity {
                 final AtomicInteger workforceSize = new AtomicInteger(0);
                 scanResult.getResult().forEach(x -> {
                     if (x.getValue().contains("\"message\":\"running\"")) {
-                        if (x.getKey().contains(project)) {
+                        if (x.getKey().startsWith(area) && x.getKey().contains(project)) {
                             workQueue.push(x.getKey());
                             workforceSize.incrementAndGet();
                         }
@@ -357,31 +353,31 @@ public class VicinityProxy implements Vicinity {
      * @param project
      * @return
      */
-    public String findActor(String type, String project) {
+    public String findActor(String type, String area,  String project) {
         var prj = (StringUtils.isNotEmpty(project)) ? project : ArchitectureFirstPhrase.DEFAULT_PROJECT;
         // search for actor in default project if that is what was sent
         if (ArchitectureFirstPhrase.DEFAULT_PROJECT.equals(prj)) {
-            return findActiveActor(type, prj);
+            return findActiveActor(type, area, prj);
         }
 
         // otherwise, search for actor in actual project first
-        var actorName = findActiveActor(type, prj);
+        var actorName = findActiveActor(type, area, prj);
 
         // if not found then find actor in default project
         if (StringUtils.isEmpty(actorName)) {
-            return findActiveActor(type, ArchitectureFirstPhrase.DEFAULT_PROJECT);
+            return findActiveActor(type, area, ArchitectureFirstPhrase.DEFAULT_PROJECT);
         }
 
         return actorName;
     }
 
     /**
-     * Returns an actor name for a group and default project
+     * Returns an actor name for a group (a.k.a. type) and default project
      * @param type
      * @return
      */
-    public String findActor(String type) {
-        return findActor(type, ArchitectureFirstPhrase.DEFAULT_PROJECT);
+    public String findActor(String type, String area) {
+        return findActor(area, type, ArchitectureFirstPhrase.DEFAULT_PROJECT);
     }
 
     /**
@@ -389,11 +385,11 @@ public class VicinityProxy implements Vicinity {
      * @param type
      * @return
      */
-    private String getRoster(String type) {
-        String template = "BulletinBoard:topic/VicinityStatus/%s:%s/Active";
+    private String getRoster(String type, String area) {
+        String template = "BulletinBoard:topic/VicinityStatus/%s.%s:%s/Active";
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("uuuu-MM-dd");
         LocalDate localDate = LocalDate.now(ZoneId.of("GMT"));
-        String roster = String.format(template, type, dtf.format(localDate));
+        String roster = String.format(template, area, type, dtf.format(localDate));
         return roster;
     }
 
@@ -402,10 +398,10 @@ public class VicinityProxy implements Vicinity {
      * @param name
      * @return
      */
-    public boolean actorIsAvailable(String name) {
+    public boolean actorIsAvailable(String name, String area) {
         try (Jedis jedisDedicated = new Jedis(redisHost, redisPort)) {
             String type = name.substring(0, name.indexOf("."));
-            String roster = getRoster(type);
+            String roster = getRoster(type, area);
 
             if (jedisDedicated.hexists(roster, name)) {
                 return true;
@@ -571,7 +567,7 @@ public class VicinityProxy implements Vicinity {
         log.info("Vicinity Proxy Receiving phrase: " + phrase);
 
         if (phrase.name().equals("ActorEntered")) {
-            if (vicinityInfo.getActorEnteredPhrase().equals(VicinityInfo.VALUE_DISABLED)) {
+            if (vicinityInfo.isActorEnteredPhraseEnabled()) {
                 return false;
             }
         }

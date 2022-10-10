@@ -32,7 +32,7 @@ public class TaskAspect {
     private AsyncRequestContext asyncRequestContext;
 
     @Autowired
-    private Tasklist taskList;
+    private TaskList taskList;
 
     /**
      * Records the task and executes it
@@ -114,11 +114,11 @@ public class TaskAspect {
      * @param actorname
      * @return a tasklist connection
      */
-    protected TasklistConnection beginTask(String usecase, String task, String requestId, String actorname) {
-        TasklistEntry entry = new TasklistEntry(TasklistEntry.Status.InProgress, actorname);
+    protected TaskListConnection beginTask(String usecase, String task, String requestId, String actorname) {
+        TaskListEntry entry = new TaskListEntry(TaskListEntry.Status.InProgress, actorname);
         taskList.postEntry(requestId, usecase, task, entry.toString());
 
-        return new TasklistConnection(usecase, task);
+        return new TaskListConnection(usecase, task);
     }
 
     /**
@@ -127,8 +127,8 @@ public class TaskAspect {
      * @param requestId
      * @param actorname
      */
-    protected void endTask(TasklistConnection conn, String requestId, String actorname) {
-        TasklistEntry entry = new TasklistEntry(TasklistEntry.Status.Complete, actorname);
+    protected void endTask(TaskListConnection conn, String requestId, String actorname) {
+        TaskListEntry entry = new TaskListEntry(TaskListEntry.Status.Complete, actorname);
         taskList.postEntry(requestId, conn.getTaskList(), conn.getTask(), entry.toString());
         taskList.recordCompletion(requestId, conn.getTaskList(), conn.getTask());
         boolean tasklistIsFinished = taskList.handleFinishedTasks(requestId, conn.getTaskList(), conn.getTask());
@@ -143,8 +143,8 @@ public class TaskAspect {
      * @param conn
      * @param message
      */
-    protected void failTask(TasklistConnection conn, String message) {
-        TasklistEntry entry = new TasklistEntry(TasklistEntry.Status.Failed, "Failed");
+    protected void failTask(TaskListConnection conn, String message) {
+        TaskListEntry entry = new TaskListEntry(TaskListEntry.Status.Failed, "Failed");
         taskList.postEntry(requestContext.getRequestId(), conn.getTaskList(), conn.getTask(), entry.toString());
         taskList.recordFailure(requestContext.getRequestId(), conn.getTaskList(), conn.getTask(), message);
         boolean tasklistIsFinished = taskList.handleFinishedTasks(requestContext.getRequestId(), conn.getTaskList(), conn.getTask());
