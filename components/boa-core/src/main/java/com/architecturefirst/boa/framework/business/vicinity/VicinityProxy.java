@@ -1,6 +1,7 @@
 package com.architecturefirst.boa.framework.business.vicinity;
 
 import com.architecturefirst.boa.framework.business.vicinity.phrases.VicinityConnectionBroken;
+import com.architecturefirst.boa.framework.technical.bulletinboard.BulletinBoard;
 import com.architecturefirst.boa.framework.technical.threading.Connection;
 import com.architecturefirst.boa.framework.business.actors.Actor;
 import com.architecturefirst.boa.framework.business.actors.SecurityGuard;
@@ -73,6 +74,9 @@ public class VicinityProxy implements Vicinity {
 
     @Autowired
     private VicinityInfo vicinityInfo;
+
+    @Autowired
+    private BulletinBoard bulletinBoard;
 
     @Value("${redis.host:localhost}")
     private String redisHost;
@@ -172,6 +176,8 @@ public class VicinityProxy implements Vicinity {
      */
     public VicinityMessage generateMessage(ArchitectureFirstPhrase phrase, String to) {
         VicinityMessage message = new VicinityMessage(phrase.from(), to);
+        message.getHeader().setArea(phrase.area());
+        message.getHeader().setProject(phrase.project());
         message.setPayload(phrase, phrase.getClass());
         return message;
     }
@@ -306,7 +312,7 @@ public class VicinityProxy implements Vicinity {
      */
 
     protected String findActiveActor(String type, String area, String project) {
-        var workQueueKey = String.format("%s.%s.%s", area, type,
+        var workQueueKey = String.format("boa.%s.%s.%s", area, type,
                 StringUtils.isNotEmpty(project) ? project : ArchitectureFirstPhrase.DEFAULT_PROJECT);
         if (!workQueueMap.containsKey(workQueueKey) || currentWorkforceSize.get(workQueueKey) == 0 ||
                 ( workQueueMap.get(workQueueKey).size() < currentWorkforceSize.get(workQueueKey))) {
@@ -348,6 +354,26 @@ public class VicinityProxy implements Vicinity {
     }
 
     /**
+     * Returns active Actors
+     * @return
+     */
+    public List<String> findActiveActors(String area, String project) {
+        var candidateActors = bulletinBoard.getAvailableActors(area);
+        List<String> actors = new ArrayList<>();
+
+        candidateActors.forEach(a -> {
+            if (a.contains("\"message\":\"running\"")) {
+                if (a.startsWith(area) && a.contains(project)) {
+                    actors.add(a);
+                }
+            }
+        });
+
+        return actors;
+    }
+
+
+    /**
      * Returns an actor name for a group and a project
      * @param type
      * @param project
@@ -381,15 +407,28 @@ public class VicinityProxy implements Vicinity {
     }
 
     /**
-     * Returns the current roster of active Actors
+     * Returns the current roster of active Actors within a group
      * @param type
      * @return
      */
     private String getRoster(String type, String area) {
-        String template = "BulletinBoard:topic/VicinityStatus/%s.%s:%s/Active";
+        String template = "boa.BulletinBoard:topic/VicinityStatus/%s.%s:%s/Active";
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("uuuu-MM-dd");
         LocalDate localDate = LocalDate.now(ZoneId.of("GMT"));
         String roster = String.format(template, area, type, dtf.format(localDate));
+        return roster;
+    }
+
+
+    /**
+     * Returns the current roster of active Actors
+     * @return
+     */
+    private String getRoster(String area) {
+        String template = "boa.BulletinBoard:topic/VicinityStatus/%s.%s:%s/Active";
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("uuuu-MM-dd");
+        LocalDate localDate = LocalDate.now(ZoneId.of("GMT"));
+        String roster = String.format(template, area, "all", dtf.format(localDate));
         return roster;
     }
 

@@ -13,9 +13,7 @@ import javax.annotation.PostConstruct;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * The shared object for inter-actor communication.
@@ -108,7 +106,7 @@ public class BulletinBoard {
     }
 
     private String getFormat(String topic, String area, String status) {
-        return String.format("boa.%s%s.%s/%s",BULLETIN_BOARD_PREFIX, area, topic, status);
+        return String.format("%s%s.%s/%s",BULLETIN_BOARD_PREFIX, area, topic, status);
     }
 
     /**
@@ -135,6 +133,41 @@ public class BulletinBoard {
             jedis.expire(awayTopic, expirationSeconds);
         });
 
+    }
+
+    /**
+     * Return active bulletin boards
+     */
+    public List<String> getActiveBulletinBoards(String area) {
+        var activeTopic = String.format("%s/%s*/Active", BULLETIN_BOARD_PREFIX, area);
+        var bulletinBoards = new ArrayList<String>();
+
+        var cursor = new JedisHCursor(jedis);
+        cursor.processAll(activeTopic, e -> {
+            bulletinBoards.add(e.getValue());
+            return false;
+        });
+
+        return bulletinBoards;
+    }
+
+    /**
+     * Return available actors in an area
+     */
+    public List<String> getAvailableActors(String area) {
+        var activeActors = new ArrayList<String>();
+
+        var bulletinBoards = getActiveBulletinBoards(area);
+
+        bulletinBoards.forEach(topic -> {
+            var cursor = new JedisHCursor(jedis);
+            cursor.processAll(topic, e -> {
+                activeActors.add(e.getValue());
+                return false;
+            });
+        });
+
+        return activeActors;
     }
 
     /**

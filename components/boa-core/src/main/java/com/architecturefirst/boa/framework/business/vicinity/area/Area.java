@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.JedisPooled;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -26,7 +27,7 @@ public class Area {
     public static final String AREA_ACTOR_CAPACITY = "actor.capacity";
     public static final String AREA_ACTOR_CAPACITY_TOTAL = AREA_ACTOR_CAPACITY + ".total";
     public static final String AREA_SIGNATURE = "boa.V%$:A%s";
-    public static final String AREA_CHILD_FORMAT = "%s.%s";
+    public static final String AREA_CHILD_FORMAT = "%s.%s.";
     @Autowired
     private JedisPooled jedis;
 
@@ -55,7 +56,6 @@ public class Area {
         var areaName = generateSignature(config.getName(), vicinityName);
 
         jedis.hset(areaName, AREA_NAME, config.getName());
-        jedis.hset(areaName, AREA_ACTOR_COUNT, String.valueOf(config.getTotalNumberOfActors()));
         jedis.hset(areaName, AREA_ACTOR_CAPACITY_TOTAL, String.valueOf(config.getTotalCapacityOfActors()));
 
         config.getTotalCapacityOfActorsByType().entrySet().forEach(c -> {
@@ -67,7 +67,24 @@ public class Area {
         });
 
         // Add to Vicinity Config
+        jedis.hset("boa.vicinity.areas", areaName, "Active");
 
+    }
+
+    /**
+     * Return the reachable neighbors
+     * @param area
+     * @param ttl
+     * @return
+     */
+    public List<String> getReachableNeighbors(String area, int ttl) {
+        var config = jedis.hgetAll(AREA_CHILD_FORMAT);
+        var list = config.entrySet().stream()
+                .filter(es -> es.getKey().contains(AREA_NEIGHBOR) && Integer.parseInt(es.getValue()) <= ttl )
+                .map(es -> es.getValue())
+                .toList();
+
+        return list;
     }
 
     /**

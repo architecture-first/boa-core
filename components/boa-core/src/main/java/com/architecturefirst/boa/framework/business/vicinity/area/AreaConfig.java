@@ -11,7 +11,6 @@ import java.util.Map;
 @Data
 public class AreaConfig {
     private String name;
-    private Integer totalNumberOfActors;
     private Integer totalCapacityOfActors;
     private Map<String, Integer> neighborAreas = new HashMap<>();   // Name and Distance 1-5
     private Map<String, Integer> totalCapacityOfActorsByType = new HashMap<>();

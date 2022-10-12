@@ -377,8 +377,40 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      * Returns the source
      * @return
      */
-    public int ttl() {return Integer.parseInt((String) header.get(BOA_TTL));}
+    public int ttl() {
+        return StringUtils.isNumeric((String) header.get(BOA_TTL)) ? Integer.parseInt((String) header.get(BOA_TTL)) : 0;
+    }
 
+    /**
+     * Reduces the Time to Live by 1
+     * @return ArchitectureFirstPhrase
+     */
+    public ArchitectureFirstPhrase reduceTTL() {
+        return reduceTTL(1);
+    }
+
+
+    /**
+     * Reduces the Time to Live to 0
+     * @return ArchitectureFirstPhrase
+     */
+    public ArchitectureFirstPhrase endTTL() {
+        return reduceTTL(-ttl());
+    }
+
+    /**
+     * Reduces the Time to Live by the desired amount
+     * @param ttlReductionAmount
+     * @return ArchitectureFirstPhrase
+     */
+    public ArchitectureFirstPhrase reduceTTL(int ttlReductionAmount) {
+        var ttl = ttl();
+        ttl -= ttlReductionAmount;
+        if (ttl < 0) ttl = 0;
+
+        header.put(BOA_TTL, String.valueOf(ttl));
+        return this;
+    }
 
     /**
      * Sets the source.
