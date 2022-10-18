@@ -38,6 +38,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     public static final String BOA_PROJECT = "boa-project";
     public static final String BOA_TTL = "boa-ttl"; // Time to live
     public static final String AREA_NAME = "areaName";
+    public static final int TTL_DEFAULT_VALUE = 1;
     public static String PHRASE_ALL_PARTICIPANTS = "all";
     private static final int requestIdSize = 20;
 
@@ -92,7 +93,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
         this.name = name;
         header.put(FROM, from);
         header.put(TO, to);
-        header.put(BOA_TTL, 1); // default to 1
+        header.put(BOA_TTL, TTL_DEFAULT_VALUE); // default to 1
         if (originalPhrase != null) {
             setOriginalPhrase(originalPhrase);
         }
@@ -382,11 +383,20 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     }
 
     /**
+     * Determines if TTL is the default value for an area
+     * @return true if TTL is the default value of 1
+     */
+    public boolean isDefaultTTL() {
+        return ttl() == TTL_DEFAULT_VALUE;
+    }
+
+
+    /**
      * Reduces the Time to Live by 1
      * @return ArchitectureFirstPhrase
      */
     public ArchitectureFirstPhrase reduceTTL() {
-        return reduceTTL(1);
+        return reduceTTL(TTL_DEFAULT_VALUE);
     }
 
 
