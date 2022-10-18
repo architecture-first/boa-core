@@ -5,6 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.JedisPooled;
 
+import javax.annotation.PostConstruct;
+import java.util.function.Function;
+
 /**
  * Contains information for the particular Vicinity
  */
@@ -13,7 +16,7 @@ import redis.clients.jedis.JedisPooled;
 public class VicinityInfo {
 
     public static final String BOA_VICINITY_INFO = "boa.vicinity.info";
-    public static final String VALUE_VICINITY_NAME = ".name";
+    public static final String VALUE_VICINITY_NAME = "name";
     public static final String VALUE_VICINITY_ENV_TO_DO = "env.to-do";
     public static final String VALUE_VICINITY_ENV_ACKNOWLEDGEMENT = "env.acknowledgement";
     public static final String VALUE_VICINITY_ENV_ACTOR_ENTERED_PHRASE = "env.actor-entered-phrase";
@@ -27,11 +30,19 @@ public class VicinityInfo {
     public static String VALUE_ENABLED = "enabled";
     public static String VALUE_DISABLED = "disabled";
 
+    private static boolean wasInitRun = false;
+
     @Autowired
     private JedisPooled jedis;
 
     public VicinityInfo() {}
 
+    /**
+     * Initializes the Vicinity
+     */
+    @PostConstruct
+    protected void init() {
+    }
 
     /**
      * Gets the Vicinity name

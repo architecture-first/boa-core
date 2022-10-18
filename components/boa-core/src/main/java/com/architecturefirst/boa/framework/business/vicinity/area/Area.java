@@ -26,7 +26,7 @@ public class Area {
     public static final String AREA_ACTOR_COUNT_TOTAL = AREA_ACTOR_COUNT_AND + "total";
     public static final String AREA_ACTOR_CAPACITY = "actor.capacity";
     public static final String AREA_ACTOR_CAPACITY_TOTAL = AREA_ACTOR_CAPACITY + ".total";
-    public static final String AREA_SIGNATURE = "boa.V%$:A%s";
+    public static final String AREA_SIGNATURE = "boa/%s/%s";
     public static final String AREA_CHILD_FORMAT = "%s.%s.";
     @Autowired
     private JedisPooled jedis;
