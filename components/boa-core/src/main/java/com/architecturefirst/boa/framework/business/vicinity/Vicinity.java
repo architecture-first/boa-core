@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 
 public interface Vicinity {
+    String name();
     void onApplicationPhrase(ArchitectureFirstPhrase event);
     VicinityMessage generateMessage(ArchitectureFirstPhrase event, String to);
     void publishMessage(String to, String contents);

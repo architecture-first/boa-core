@@ -128,6 +128,14 @@ public class VicinityProxy implements Vicinity {
     }
 
     /**
+     * Determines the Vicinity Name
+     * @return the Vicinity name
+     */
+    public String name() {
+        return vicinityInfo.getVicinityName();
+    }
+
+    /**
      * Event listener for phrases.
      * The phrases are sent to the target actor in the Vicinity if they are not local or meant to be received in the current process.
      * @param phrase
