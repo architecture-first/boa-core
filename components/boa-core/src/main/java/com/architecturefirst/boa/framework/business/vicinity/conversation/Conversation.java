@@ -98,7 +98,7 @@ public class Conversation {
      * @return
      */
     public String record(ArchitectureFirstPhrase event, Status status) {
-        return  (!event.name().equals("SelfVicinityCheckupEvent") && !event.name().equals("AcknowledgementEvent")
+        return  (!event.name().equals("SelfVicinityCheckup") && !event.name().equals("Acknowledgement")
                 && !event.toFirst().equals("VicinityMonitor"))
                 ? record(event.area(), event.getRequestId(), event.name(), event.from(), event.toFirst(), String.valueOf(event.index()), status)
                 : "WARNING_CONVO_ENTRY_IGNORED";

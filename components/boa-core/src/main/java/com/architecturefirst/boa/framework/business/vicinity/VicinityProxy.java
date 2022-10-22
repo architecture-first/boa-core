@@ -1,5 +1,6 @@
 package com.architecturefirst.boa.framework.business.vicinity;
 
+import com.architecturefirst.boa.framework.business.vicinity.area.ActorInArea;
 import com.architecturefirst.boa.framework.business.vicinity.phrases.VicinityConnectionBroken;
 import com.architecturefirst.boa.framework.technical.bulletinboard.BulletinBoard;
 import com.architecturefirst.boa.framework.technical.threading.Connection;
@@ -150,7 +151,7 @@ public class VicinityProxy implements Vicinity {
                         try {
                             phrase.to().forEach(t -> {
                                 if (StringUtils.isNotEmpty(t)) {
-                                    if (!phrase.hasTargetActor() || (phrase.hasTargetActor() && !t.equals(phrase.getTarget().get().name()))) {
+                                    if (phraseIsNotAlreadyAssignedToAnActor(phrase, t)) {
                                         VicinityMessage message = onVicinityBeforePublishMessage(phrase, t);
 
                                         var path = VICINITY_API_MESSAGE_SEND;
@@ -176,6 +177,10 @@ public class VicinityProxy implements Vicinity {
         }
     }
 
+    private boolean phraseIsNotAlreadyAssignedToAnActor(ArchitectureFirstPhrase phrase, String t) {
+        return !phrase.hasTargetActor() || (phrase.hasTargetActor() && !t.equals(phrase.getTarget().get().name()));
+    }
+
     /**
      * Generates a Vicinity message from and phrase
      * @param phrase
@@ -186,6 +191,8 @@ public class VicinityProxy implements Vicinity {
         VicinityMessage message = new VicinityMessage(phrase.from(), to);
         message.getHeader().setArea(phrase.area());
         message.getHeader().setProject(phrase.project());
+        message.getHeader().setArea(phrase.area());
+        message.getHeader().setTtl(phrase.ttl());
         message.setPayload(phrase, phrase.getClass());
         return message;
     }
@@ -319,7 +326,7 @@ public class VicinityProxy implements Vicinity {
      * @return
      */
 
-    protected String findActiveActor(String type, String area, String project) {
+    protected ActorInArea findActiveActor(String type, String area, String project) {
         var workQueueKey = String.format("boa.%s.%s.%s", area, type,
                 StringUtils.isNotEmpty(project) ? project : ArchitectureFirstPhrase.DEFAULT_PROJECT);
         if (!workQueueMap.containsKey(workQueueKey) || currentWorkforceSize.get(workQueueKey) == 0 ||
@@ -358,20 +365,21 @@ public class VicinityProxy implements Vicinity {
             }
         }
 
-        return (workQueueMap.get(workQueueKey) != null && workQueueMap.get(workQueueKey).size() > 0) ? workQueueMap.get(workQueueKey).pop() : "";
+        return (workQueueMap.get(workQueueKey) != null && workQueueMap.get(workQueueKey).size() > 0) ? new ActorInArea(area, workQueueMap.get(workQueueKey).pop()) : ActorInArea.NO_RESULTS();
     }
 
     /**
      * Returns active Actors
      * @return
      */
-    public List<String> findActiveActors(String area, String project) {
+    public List<ActorInArea> findActiveActors(String area, String project) {
         var candidateActors = bulletinBoard.getAvailableActors(area);
-        List<String> actors = new ArrayList<>();
+        List<ActorInArea> actors = new ArrayList<>();
 
         candidateActors.forEach(a -> {
-            if (a.contains("\"message\":\"running\"")) {
-                if (a.startsWith(area) && a.contains(project)) {
+            var actorInfo = a.getActorInfo();
+            if (actorInfo.contains("\"message\":\"running\"")) {
+                if (actorInfo.startsWith(area) && actorInfo.contains(project)) {
                     actors.add(a);
                 }
             }
@@ -387,7 +395,7 @@ public class VicinityProxy implements Vicinity {
      * @param project
      * @return
      */
-    public String findActor(String type, String area,  String project) {
+    public ActorInArea findActor(String type, String area,  String project) {
         var prj = (StringUtils.isNotEmpty(project)) ? project : ArchitectureFirstPhrase.DEFAULT_PROJECT;
         // search for actor in default project if that is what was sent
         if (ArchitectureFirstPhrase.DEFAULT_PROJECT.equals(prj)) {
@@ -395,14 +403,14 @@ public class VicinityProxy implements Vicinity {
         }
 
         // otherwise, search for actor in actual project first
-        var actorName = findActiveActor(type, area, prj);
+        var actorInfo = findActiveActor(type, area, prj);
 
         // if not found then find actor in default project
-        if (StringUtils.isEmpty(actorName)) {
+        if (StringUtils.isEmpty(actorInfo.getActorInfo())) {
             return findActiveActor(type, area, ArchitectureFirstPhrase.DEFAULT_PROJECT);
         }
 
-        return actorName;
+        return actorInfo;
     }
 
     /**
@@ -410,7 +418,7 @@ public class VicinityProxy implements Vicinity {
      * @param type
      * @return
      */
-    public String findActor(String type, String area) {
+    public ActorInArea findActor(String type, String area) {
         return findActor(area, type, ArchitectureFirstPhrase.DEFAULT_PROJECT);
     }
 
@@ -614,7 +622,7 @@ public class VicinityProxy implements Vicinity {
         log.info("Vicinity Proxy Receiving phrase: " + phrase);
 
         if (phrase.name().equals("ActorEntered")) {
-            if (vicinityInfo.isActorEnteredPhraseEnabled()) {
+            if (!vicinityInfo.isActorEnteredPhraseEnabled()) {
                 return false;
             }
         }

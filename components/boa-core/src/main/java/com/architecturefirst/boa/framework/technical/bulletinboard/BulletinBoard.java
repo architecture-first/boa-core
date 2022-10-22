@@ -1,5 +1,6 @@
 package com.architecturefirst.boa.framework.technical.bulletinboard;
 
+import com.architecturefirst.boa.framework.business.vicinity.area.ActorInArea;
 import com.architecturefirst.boa.framework.business.vicinity.info.VicinityInfo;
 import com.architecturefirst.boa.framework.technical.cache.JedisHCursor;
 import com.architecturefirst.boa.framework.technical.util.DateUtils;
@@ -154,15 +155,15 @@ public class BulletinBoard {
     /**
      * Return available actors in an area
      */
-    public List<String> getAvailableActors(String area) {
-        var activeActors = new ArrayList<String>();
+    public List<ActorInArea> getAvailableActors(String area) {
+        var activeActors = new ArrayList<ActorInArea>();
 
         var bulletinBoards = getActiveBulletinBoards(area);
 
         bulletinBoards.forEach(topic -> {
             var cursor = new JedisHCursor(jedis);
             cursor.processAll(topic, e -> {
-                activeActors.add(e.getValue());
+                activeActors.add(new ActorInArea(area, e.getValue()));
                 return false;
             });
         });

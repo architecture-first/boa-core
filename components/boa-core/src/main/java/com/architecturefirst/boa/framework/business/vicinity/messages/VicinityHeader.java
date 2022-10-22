@@ -17,6 +17,7 @@ public class VicinityHeader implements Serializable {
     private String subject;
     private String phraseType;
     private String token;
+    private Integer ttl;
     private String area; // source area
     private String otherArea; // target area outside of source area
     private String project;

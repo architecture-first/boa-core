@@ -82,31 +82,31 @@ public interface SecurityGuard {
 
     /**
      * Determines if the event needs an access token to proceed further
-     * @param event
-     * @return true if not one of the excluded events
+     * @param phrase
+     * @return true if not one of the excluded phrases
      */
-    static boolean needsAnAccessToken(ArchitectureFirstPhrase event) {
-        return !isOkToProceed(event);
+    static boolean needsAnAccessToken(ArchitectureFirstPhrase phrase) {
+        return !isOkToProceed(phrase);
     }
 
-    public static List<String> NON_SECURED_EVENTS = new ArrayList<>(List.of(new String[]{
-            "AccessRequestEvent", "AcknowledgementEvent", "AnonymousOkEvent", "CheckupEvent", "ErrorEvent"
+    public static List<String> NON_SECURED_PHRASES = new ArrayList<>(List.of(new String[]{
+            "AccessRequest", "Acknowledgement", "AnonymousOk", "Checkup", "Error"
     }));
 
     /**
-     * Determines if the event passes validation and can be sent in the Vicinity
-     * @param event
-     * @return true if the event is valid
+     * Determines if the phrase passes validation and can be sent in the Vicinity
+     * @param phrase
+     * @return true if the phrase is valid
      */
-    static boolean isOkToProceed(ArchitectureFirstPhrase event) {
-        if (NON_SECURED_EVENTS.contains(event.type())) {
+    static boolean isOkToProceed(ArchitectureFirstPhrase phrase) {
+        if (NON_SECURED_PHRASES.contains(phrase.type())) {
             return true;
         }
 
-        return event instanceof Error || event instanceof AccessRequest
-                || event instanceof Checkup || event instanceof Acknowledgement
-                || event instanceof AnonymousOk
-                || isTokenValid(event.getAccessToken());
+        return phrase instanceof Error || phrase instanceof AccessRequest
+                || phrase instanceof Checkup || phrase instanceof Acknowledgement
+                || phrase instanceof AnonymousOk
+                || isTokenValid(phrase.getAccessToken());
     }
 
     /**
@@ -132,43 +132,43 @@ public interface SecurityGuard {
     });
 
     /**
-     * Reply to the original event
-     * @param event
+     * Reply to the original phrase
+     * @param phrase
      * @return
      */
-    static ArchitectureFirstPhrase replyToSender(ArchitectureFirstPhrase event) {
-        Actor actor = determineTargetActor(event);
+    static ArchitectureFirstPhrase replyToSender(ArchitectureFirstPhrase phrase) {
+        Actor actor = determineTargetActor(phrase);
 
-        var incident = new SecurityIncident(SECURITY_GUARD,  event.from(), event)
+        var incident = new SecurityIncident(SECURITY_GUARD,  phrase.from(), phrase)
                 .setAsRequiresAcknowledgement(false);
 
         return actor.say(incident);
     }
 
     /**
-     * Determine actor that is targeted for the event
-     * @param event
+     * Determine actor that is targeted for the phrase
+     * @param phrase
      * @return
      */
-    private static Actor determineTargetActor(ArchitectureFirstPhrase event) {
-        Actor actor = (event.getSource() instanceof Actor)
-                ? (Actor) event.getSource()
-                : (event.getTarget() != null && event.getTarget().isPresent())
-                ? event.getTarget().get() : null;
+    private static Actor determineTargetActor(ArchitectureFirstPhrase phrase) {
+        Actor actor = (phrase.getSource() instanceof Actor)
+                ? (Actor) phrase.getSource()
+                : (phrase.getTarget() != null && phrase.getTarget().isPresent())
+                ? phrase.getTarget().get() : null;
         return actor;
     }
 
     /**
-     * Report a security error for the event
-     * @param event
+     * Report a security error for the phrase
+     * @param phrase
      * @param message
      * @return
      */
-    public static ArchitectureFirstPhrase reportError(ArchitectureFirstPhrase event, String message) {
-        Actor actor = determineTargetActor(event);
-        event.setHasErrors(true);
+    public static ArchitectureFirstPhrase reportError(ArchitectureFirstPhrase phrase, String message) {
+        Actor actor = determineTargetActor(phrase);
+        phrase.setHasErrors(true);
 
-        var incident = new SecurityIncident(SECURITY_GUARD,  VICINITY_MONITOR, event);
+        var incident = new SecurityIncident(SECURITY_GUARD,  VICINITY_MONITOR, phrase);
         incident.setAsRequiresAcknowledgement(false);
         incident.setMessage(message);
         incident.setHasErrors(true);

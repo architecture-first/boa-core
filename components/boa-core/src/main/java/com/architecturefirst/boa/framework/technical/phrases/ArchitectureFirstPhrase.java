@@ -38,7 +38,8 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     public static final String BOA_PROJECT = "boa-project";
     public static final String BOA_TTL = "boa-ttl"; // Time to live
     public static final String AREA_NAME = "areaName";
-    public static final int TTL_DEFAULT_VALUE = 1;
+    public static final String OTHER_AREA_NAME = "otherAreaName";
+    public static final double TTL_DEFAULT_VALUE = 1;
     public static String PHRASE_ALL_PARTICIPANTS = "all";
     private static final int requestIdSize = 20;
 
@@ -298,6 +299,23 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     }
 
     /**
+     * Returns the other area the phrase will be heard in
+     * @return
+     */
+    public String otherArea() {return (String) this.header.get(OTHER_AREA_NAME);}
+
+
+    /**
+     * Sets the name of the other area the phrase will be heard in
+     * @param name
+     * @return ArchitectureFirstPhrase
+     */
+    public ArchitectureFirstPhrase setOtherArea(String name) {
+        this.header.put(OTHER_AREA_NAME, name);
+        return this;
+    }
+
+    /**
      * Returns the subject of the phrase
      * @return
      */
@@ -369,8 +387,9 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      * @param ttlValue
      * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstPhrase setTTL(int ttlValue) {
-        header.put(BOA_TTL, String.valueOf(ttlValue));
+    public ArchitectureFirstPhrase setTTL(Integer ttlValue) {
+        var val = ttlValue.doubleValue();
+        header.put(BOA_TTL, val);
         return this;
     }
 
@@ -378,8 +397,9 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      * Returns the source
      * @return
      */
-    public int ttl() {
-        return StringUtils.isNumeric((String) header.get(BOA_TTL)) ? Integer.parseInt((String) header.get(BOA_TTL)) : 0;
+    public Integer ttl() {
+        var val = (Double) header.get(BOA_TTL);
+        return val.intValue();
     }
 
     /**
@@ -387,7 +407,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      * @return true if TTL is the default value of 1
      */
     public boolean isDefaultTTL() {
-        return ttl() == TTL_DEFAULT_VALUE;
+        return ttl() == 1;
     }
 
 
@@ -396,7 +416,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      * @return ArchitectureFirstPhrase
      */
     public ArchitectureFirstPhrase reduceTTL() {
-        return reduceTTL(TTL_DEFAULT_VALUE);
+        return reduceTTL(1);
     }
 
 
@@ -418,7 +438,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
         ttl -= ttlReductionAmount;
         if (ttl < 0) ttl = 0;
 
-        header.put(BOA_TTL, String.valueOf(ttl));
+        setTTL(ttl);
         return this;
     }
 
@@ -1044,9 +1064,20 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      * @return return ArchitectureFirstPhrase object or null if error
      */
     public static ArchitectureFirstPhrase from(Object source, VicinityMessage message) {
+        return from(source, message, true);
+    }
+
+    /**
+     * Convert a Vicinity message to an ArchitectureFirstPhrase
+     * @param source
+     * @param message
+     * @param convertPhraseType - true to convert to the specific concrete class specified
+     * @return return ArchitectureFirstPhrase object or null if error
+     */
+    public static ArchitectureFirstPhrase from(Object source, VicinityMessage message, boolean convertPhraseType) {
         try {
             var phraseType = message.getHeader().getPhraseType();
-            if (phraseType != null) {
+            if (phraseType != null && convertPhraseType) {
                 if (Character.isUpperCase(phraseType.charAt(0))) {
                     return from(message);
                 }

@@ -1,6 +1,7 @@
 package com.architecturefirst.boa.framework.business.vicinity;
 
 import com.architecturefirst.boa.framework.business.actors.Actor;
+import com.architecturefirst.boa.framework.business.vicinity.area.ActorInArea;
 import com.architecturefirst.boa.framework.business.vicinity.messages.VicinityMessage;
 import com.architecturefirst.boa.framework.technical.phrases.ArchitectureFirstPhrase;
 
@@ -15,10 +16,10 @@ public interface Vicinity {
     void subscribe(Actor owner, String target, BiFunction<Actor, ArchitectureFirstPhrase, Void> fnCallback);
     void unsubscribe(String target);
     boolean areConnectionsOk(String target, int numberOfConnections);
-    String findActor(String type, String area, String project);
-    String findActor(String type, String area);
+    ActorInArea findActor(String type, String area, String project);
+    ActorInArea findActor(String type, String area);
 
-    List<String> findActiveActors(java.lang.String area, java.lang.String project);
+    List<ActorInArea> findActiveActors(java.lang.String area, java.lang.String project);
     boolean actorIsAvailable(String name, String area);
 
 }
