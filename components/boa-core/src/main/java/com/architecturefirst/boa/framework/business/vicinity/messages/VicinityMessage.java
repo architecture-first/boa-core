@@ -101,4 +101,30 @@ public class VicinityMessage implements Serializable {
         }
     }
 
+    /**
+     * Generates a Vicinity message from and phrase
+     * @param phrase
+     * @param to
+     * @return
+     */
+    public static VicinityMessage from(ArchitectureFirstPhrase phrase, String to) {
+        VicinityMessage message = new VicinityMessage(phrase.from(), to);
+        message.getHeader().setArea(phrase.area());
+        message.getHeader().setProject(phrase.project());
+        message.getHeader().setArea(phrase.area());
+        message.getHeader().setTtl(phrase.ttl());
+        message.setPayload(phrase, phrase.getClass());
+        return message;
+    }
+
+    /**
+     * Generates a Vicinity message from a phrase
+     * @param phrase
+     * @return
+     */
+    public static VicinityMessage from(ArchitectureFirstPhrase phrase) {
+        return from(phrase, phrase.toFirst());
+    }
+
+
 }

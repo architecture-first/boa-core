@@ -2,6 +2,7 @@ package com.architecturefirst.boa.framework.technical.bulletinboard;
 
 import com.architecturefirst.boa.framework.business.vicinity.area.ActorInArea;
 import com.architecturefirst.boa.framework.business.vicinity.info.VicinityInfo;
+import com.architecturefirst.boa.framework.technical.cache.JedisCursor;
 import com.architecturefirst.boa.framework.technical.cache.JedisHCursor;
 import com.architecturefirst.boa.framework.technical.util.DateUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,7 @@ public class BulletinBoard {
 
     private final String bulletinBoardConnectionId = UUID.randomUUID().toString();
     private long expirationSeconds;
-    private static final String BULLETIN_BOARD_PREFIX = "boa.BulletinBoard:topic/";
+    private static final String BULLETIN_BOARD_PREFIX = "boa.BulletinBoard:topic";
 
     @PostConstruct
     public void init() {
@@ -107,7 +108,7 @@ public class BulletinBoard {
     }
 
     private String getFormat(String topic, String area, String status) {
-        return String.format("%s%s.%s/%s",BULLETIN_BOARD_PREFIX, area, topic, status);
+        return String.format("%s/%s/%s/%s",BULLETIN_BOARD_PREFIX, area, topic, status);
     }
 
     /**
@@ -140,12 +141,12 @@ public class BulletinBoard {
      * Return active bulletin boards
      */
     public List<String> getActiveBulletinBoards(String area) {
-        var activeTopic = String.format("%s/%s*/Active", BULLETIN_BOARD_PREFIX, area);
+        var activeTopic = String.format("%s/%s/VicinityStatus*/Active", BULLETIN_BOARD_PREFIX, area);
         var bulletinBoards = new ArrayList<String>();
 
-        var cursor = new JedisHCursor(jedis);
+        var cursor = new JedisCursor(jedis);
         cursor.processAll(activeTopic, e -> {
-            bulletinBoards.add(e.getValue());
+            bulletinBoards.add(e);
             return false;
         });
 
@@ -155,7 +156,7 @@ public class BulletinBoard {
     /**
      * Return available actors in an area
      */
-    public List<ActorInArea> getAvailableActors(String area) {
+    public List<ActorInArea> getAvailableActors(String area, String project) {
         var activeActors = new ArrayList<ActorInArea>();
 
         var bulletinBoards = getActiveBulletinBoards(area);
@@ -163,7 +164,11 @@ public class BulletinBoard {
         bulletinBoards.forEach(topic -> {
             var cursor = new JedisHCursor(jedis);
             cursor.processAll(topic, e -> {
-                activeActors.add(new ActorInArea(area, e.getValue()));
+                var actorInfo = e.getValue();
+                if (actorInfo.contains("\"message\":\"running\"") && actorInfo.startsWith(area) && actorInfo.contains(project)) {
+                    activeActors.add(new ActorInArea(area, e.getKey()));
+                }
+
                 return false;
             });
         });

@@ -56,7 +56,7 @@ public class Conversation {
 
     private long expirationSeconds = 3600; //default
     private static final Gson gson = new Gson();
-    public static String CONVO_TEMPLATE = "boa.%s.%s/Conversation";
+    public static String CONVO_TEMPLATE = "boa.%s/%s/Conversation";
 
     @Autowired
     private JedisPooled jedis;

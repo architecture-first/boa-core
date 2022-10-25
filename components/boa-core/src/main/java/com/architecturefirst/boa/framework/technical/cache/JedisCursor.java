@@ -4,6 +4,8 @@ import redis.clients.jedis.JedisPooled;
 import redis.clients.jedis.params.ScanParams;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 /**
@@ -26,16 +28,24 @@ public class JedisCursor {
      * @param fnOnChunk - method to execute per chunk
      */
     public void processAll(String filter, int start, int chunkSize,
-                           Function<List<String>, Boolean> fnOnChunk) {
+                           Function<String, Boolean> fnOnChunk) {
         ScanParams scanParams = new ScanParams().count(chunkSize).match(filter);
         cursor = String.valueOf(start);
+        var end = String.valueOf(DEFAULT_CURSOR_START);
+        AtomicBoolean hasPassed = new AtomicBoolean(false);
         do {
             var scanResult = jedis.scan(cursor, scanParams);
-            if (fnOnChunk.apply(scanResult.getResult())) {
+            scanResult.getResult().forEach(e -> {
+                if (fnOnChunk.apply(e)) {
+                    hasPassed.set(true);
+                }
+            });
+
+            if (hasPassed.get()) {
                 break;
             }
             cursor = scanResult.getCursor();
-        } while (!cursor.equals(DEFAULT_CURSOR_START));
+        } while (!cursor.equals(end));
     }
 
     /**
@@ -45,15 +55,25 @@ public class JedisCursor {
      * @param fnOnChunk - method to execute per chunk
      */
     public void processAll(String filter, int chunkSize,
-                           Function<List<String>, Boolean> fnOnChunk) {
+                           Function<String, Boolean> fnOnChunk) {
         processAll(filter, DEFAULT_CURSOR_START, chunkSize, fnOnChunk);
+    }
+
+    /**
+     * Iterates through entries
+     * @param filter - Jedis compatible filter
+     * @param fnOnChunk - method to execute per chunk
+     */
+    public void processAll(String filter,
+                           Function<String, Boolean> fnOnChunk) {
+        processAll(filter, DEFAULT_CURSOR_START, 100, fnOnChunk);
     }
 
     /**
      * Iterates through entries
      * @param fnOnChunk - method to execute per chunk
      */
-    public void processAll(Function<List<String>, Boolean> fnOnChunk) {
+    public void processAll(Function<String, Boolean> fnOnChunk) {
         processAll(DEFAULT_MATCH_PARAMS, DEFAULT_CURSOR_START, DEFAULT_CHUNK_SIZE, fnOnChunk);
     }
 

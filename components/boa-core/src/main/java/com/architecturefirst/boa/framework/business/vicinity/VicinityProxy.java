@@ -188,13 +188,7 @@ public class VicinityProxy implements Vicinity {
      * @return
      */
     public VicinityMessage generateMessage(ArchitectureFirstPhrase phrase, String to) {
-        VicinityMessage message = new VicinityMessage(phrase.from(), to);
-        message.getHeader().setArea(phrase.area());
-        message.getHeader().setProject(phrase.project());
-        message.getHeader().setArea(phrase.area());
-        message.getHeader().setTtl(phrase.ttl());
-        message.setPayload(phrase, phrase.getClass());
-        return message;
+        return VicinityMessage.from(phrase, to);
     }
 
     /**
@@ -373,19 +367,9 @@ public class VicinityProxy implements Vicinity {
      * @return
      */
     public List<ActorInArea> findActiveActors(String area, String project) {
-        var candidateActors = bulletinBoard.getAvailableActors(area);
-        List<ActorInArea> actors = new ArrayList<>();
+        var candidateActors = bulletinBoard.getAvailableActors(area, project);
 
-        candidateActors.forEach(a -> {
-            var actorInfo = a.getActorInfo();
-            if (actorInfo.contains("\"message\":\"running\"")) {
-                if (actorInfo.startsWith(area) && actorInfo.contains(project)) {
-                    actors.add(a);
-                }
-            }
-        });
-
-        return actors;
+        return candidateActors;
     }
 
 
