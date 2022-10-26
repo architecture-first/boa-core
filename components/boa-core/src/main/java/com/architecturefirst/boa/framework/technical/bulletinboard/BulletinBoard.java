@@ -165,8 +165,9 @@ public class BulletinBoard {
             var cursor = new JedisHCursor(jedis);
             cursor.processAll(topic, e -> {
                 var actorInfo = e.getValue();
-                if (actorInfo.contains("\"message\":\"running\"") && actorInfo.startsWith(area) && actorInfo.contains(project)) {
-                    activeActors.add(new ActorInArea(area, e.getKey()));
+                var actorName = e.getKey();
+                if (actorInfo.contains("\"message\":\"running\"") && actorName.contains(project)) {
+                    activeActors.add(new ActorInArea(area, actorName));
                 }
 
                 return false;
