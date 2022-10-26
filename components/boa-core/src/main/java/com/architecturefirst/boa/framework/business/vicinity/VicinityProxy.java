@@ -239,7 +239,7 @@ public class VicinityProxy implements Vicinity {
                                         phrase.setPropagatedFromVicinity(true);
                                         phrase.shouldAwaitResponse(false);  // this flag is for the caller not recipients
                                         phrase.onVicinityInit();
-                                        log.info("Received and Locally Published Event: " + new Gson().toJson(phrase));
+                                        log.info("Received and Locally Published Phrase: " + new Gson().toJson(phrase));
                                         convo.record(phrase, Conversation.Status.ReceivedInVicinity);
 
                                         if (SecurityGuard.isOkToProceed(phrase)) {
@@ -258,7 +258,7 @@ public class VicinityProxy implements Vicinity {
                                             processInvalidToken(phrase);
                                         }
                                     } else {
-                                        owner.onError("Vicinity Message is not readable as an ArchitectureFirstEvent: " + vicinityMessage);
+                                        owner.onError("Vicinity Message is not readable as an ArchitectureFirstPhrase: " + vicinityMessage);
                                     }
                                 }
                                 catch (Exception e) {
