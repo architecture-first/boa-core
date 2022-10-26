@@ -174,7 +174,7 @@ public class BulletinBoard {
             });
         });
 
-        return activeActors;
+        return activeActors.stream().distinct().toList();
     }
 
     /**
