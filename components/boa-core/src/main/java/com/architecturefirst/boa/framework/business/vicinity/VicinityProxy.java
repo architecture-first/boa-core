@@ -403,7 +403,7 @@ public class VicinityProxy implements Vicinity {
      * @return
      */
     public ActorInArea findActor(String type, String area) {
-        return findActor(area, type, ArchitectureFirstPhrase.DEFAULT_PROJECT);
+        return findActor(type, area, ArchitectureFirstPhrase.DEFAULT_PROJECT);
     }
 
     /**
@@ -412,23 +412,10 @@ public class VicinityProxy implements Vicinity {
      * @return
      */
     private String getRoster(String type, String area) {
-        String template = "boa.BulletinBoard:topic/VicinityStatus/%s.%s:%s/Active";
+        String template = "boa.BulletinBoard:topic/%s/VicinityStatus/%s:%s/Active";
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("uuuu-MM-dd");
         LocalDate localDate = LocalDate.now(ZoneId.of("GMT"));
         String roster = String.format(template, area, type, dtf.format(localDate));
-        return roster;
-    }
-
-
-    /**
-     * Returns the current roster of active Actors
-     * @return
-     */
-    private String getRoster(String area) {
-        String template = "boa.BulletinBoard:topic/VicinityStatus/%s.%s:%s/Active";
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("uuuu-MM-dd");
-        LocalDate localDate = LocalDate.now(ZoneId.of("GMT"));
-        String roster = String.format(template, area, "all", dtf.format(localDate));
         return roster;
     }
 

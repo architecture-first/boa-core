@@ -99,7 +99,7 @@ public interface SecurityGuard {
      * @return true if the phrase is valid
      */
     static boolean isOkToProceed(ArchitectureFirstPhrase phrase) {
-        if (NON_SECURED_PHRASES.contains(phrase.type())) {
+        if (NON_SECURED_PHRASES.contains(phrase.category())) {
             return true;
         }
 

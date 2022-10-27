@@ -1,6 +1,7 @@
 package com.architecturefirst.boa.framework.technical.phrases;
 
 import com.architecturefirst.boa.framework.business.actors.Actor;
+import com.architecturefirst.boa.framework.business.vicinity.exceptions.VicinityException;
 import com.architecturefirst.boa.framework.business.vicinity.messages.VicinityMessage;
 import com.architecturefirst.boa.framework.business.vicinity.phrases.Error;
 import com.architecturefirst.boa.framework.technical.util.SimpleModel;
@@ -40,6 +41,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     public static final String AREA_NAME = "areaName";
     public static final String OTHER_AREA_NAME = "otherAreaName";
     public static final double TTL_DEFAULT_VALUE = 1;
+    public static final String PHRASE_TYPE = "phraseType";
     public static String PHRASE_ALL_PARTICIPANTS = "all";
     private static final int requestIdSize = 20;
 
@@ -178,6 +180,26 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     }
 
     /**
+     * Sets the header information
+     * @param header
+     * @return this phrase
+     */
+    public ArchitectureFirstPhrase setHeader(SimpleModel header) {
+        this.header.putAll(header);
+        return this;
+    }
+
+    /**
+     * Sets the payload information
+     * @param payload
+     * @return this phrase
+     */
+    public ArchitectureFirstPhrase setPayload(SimpleModel payload) {
+        this.payload.putAll(payload);
+        return this;
+    }
+
+    /**
      * Set the Actor that the phrase targets once it arrives in the desired process
      * @param target
      * @return ArchitectureFirstPhrase
@@ -209,17 +231,34 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     public boolean hasTargetActor() {return target != null && target.isPresent();}
 
     /**
-     * Returns the type of the phrase
+     * Returns the phrase type
      * @return
      */
-    public String type() {return implementsType;}
+    public String phraseType() {return (String) header.get(PHRASE_TYPE);}
+
 
     /**
-     * Sets the type of the phrase
+     * Sets the category of the phrase
+     * @param phraseType
+     * @return
+     */
+    public ArchitectureFirstPhrase setPhraseType(String phraseType) {
+        header.put(PHRASE_TYPE, phraseType);
+        return this;
+    }
+
+    /**
+     * Returns the category of the phrase
+     * @return
+     */
+    public String category() {return implementsType;}
+
+    /**
+     * Sets the category of the phrase
      * @param implementsType
      * @return
      */
-    public ArchitectureFirstPhrase setImplementsType(String implementsType) {
+    public ArchitectureFirstPhrase setCategory(String implementsType) {
         this.implementsType = implementsType;
         return this;
     }
@@ -1113,6 +1152,26 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     }
 
     /**
+     * Convert an ArchitectureFirstPhrase to a specific type
+     * @param inPhrase
+     * @param classType
+     * @return return ArchitectureFirstPhrase object or null if error
+     */
+    public static ArchitectureFirstPhrase from(ArchitectureFirstPhrase inPhrase, Type classType) {
+        try {
+            var gson = new Gson();
+            String jsonPhrase = gson.toJson(inPhrase, ArchitectureFirstPhrase.class);
+            ArchitectureFirstPhrase phrase = gson.fromJson(jsonPhrase, classType);
+
+            return phrase;
+        } catch (Exception e) {
+            var msg = "Invalid class definition";
+            log.error(msg, e);
+            throw new VicinityException(e);
+        }
+    }
+
+    /**
      * Returns an phrase based on an original phrase without the payload
      * @param from
      * @param originalPhrase
@@ -1132,7 +1191,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      * @return return ArchitectureFirstPhrase object or null if error
      */
     public static ArchitectureFirstPhrase fromForReply(String from, ArchitectureFirstPhrase originalPhrase) {
-        return fromForReply(originalPhrase.name(), originalPhrase.type(), from, originalPhrase, true);
+        return fromForReply(originalPhrase.name(), originalPhrase.category(), from, originalPhrase, true);
     }
 
 
@@ -1152,7 +1211,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
         }
         replyPhrase.setAccessToken(originalPhrase.getAccessToken());
         replyPhrase.setName(name);
-        replyPhrase.setImplementsType(type);
+        replyPhrase.setCategory(type);
 
         if (originalPhrase.isSecured()) {
             replyPhrase.setAsSecured();
