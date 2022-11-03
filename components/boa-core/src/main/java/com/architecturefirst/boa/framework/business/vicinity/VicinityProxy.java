@@ -342,7 +342,7 @@ public class VicinityProxy implements Vicinity {
 
                 final AtomicInteger workforceSize = new AtomicInteger(0);
                 scanResult.getResult().forEach(x -> {
-                    if (x.getValue().contains("\"message\":\"running\"")) {
+                    if (x.getValue().contains("\"message\":\"running\"") || x.getValue().contains("\"message\":\"started\"")) {
                         if (x.getKey().startsWith(area) && x.getKey().contains(project)) {
                             workQueue.push(x.getKey());
                             workforceSize.incrementAndGet();
