@@ -904,6 +904,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     private ArchitectureFirstPhrase initArchitectureFirstPhrase(ArchitectureFirstPhrase originalPhrase) {
         setRequestId(originalPhrase.getRequestId());
         setAccessToken(originalPhrase.getAccessToken());
+        setArea(originalPhrase.area());
         if (originalPhrase.header().containsKey(BOA_CONN)) {
             addHeader(BOA_CONN, (String) originalPhrase.header().get(BOA_CONN));
         }
