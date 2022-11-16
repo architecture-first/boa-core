@@ -239,7 +239,7 @@ public class VicinityProxy implements Vicinity {
                                         phrase.setPropagatedFromVicinity(true);
                                         phrase.shouldAwaitResponse(false);  // this flag is for the caller not recipients
                                         phrase.onVicinityInit();
-                                        log.info("Received and Locally Published Phrase: " + new Gson().toJson(phrase));
+                                        log.debug("Received and Locally Published Phrase: " + new Gson().toJson(phrase));
                                         convo.record(phrase, Conversation.Status.ReceivedInVicinity);
 
                                         if (SecurityGuard.isOkToProceed(phrase)) {
@@ -288,7 +288,7 @@ public class VicinityProxy implements Vicinity {
             }
         };
 
-        log.info("Subscription to: " + channelFor(target));
+        log.debug("Subscription to: " + channelFor(target));
 
         setupTask(target, submitTask);
     }
@@ -553,7 +553,7 @@ public class VicinityProxy implements Vicinity {
     }
 
     private void onVicinityReceivedPhraseBlocked(ArchitectureFirstPhrase phrase) {
-        log.info("Message blocked: " + phrase.toString());
+        log.debug("Message blocked: " + phrase.toString());
     }
 
     private void onVicinityProcessingException(Exception e) {
@@ -563,7 +563,7 @@ public class VicinityProxy implements Vicinity {
 
     private void onVicinityEmptyTarget(ArchitectureFirstPhrase phrase) {
         String msg = "to: is empty on message: " + phrase.getMessage();
-        log.info(msg);
+        log.error(msg);
         throw new VicinityException(msg);
     }
 
@@ -572,7 +572,7 @@ public class VicinityProxy implements Vicinity {
     }
 
     private void onVicinityAfterPublishMessage(String channel, VicinityMessage message) {
-        log.info("Published Phrase to Vicinity: " + channel + " message: " + message);
+        log.debug("Published Phrase to Vicinity: " + channel + " message: " + message);
     }
 
     private String onVicinityPublishMessage(String path, VicinityMessage message) {
@@ -590,7 +590,7 @@ public class VicinityProxy implements Vicinity {
     }
 
     private boolean onVicinityReceivePhrase(ArchitectureFirstPhrase phrase) {
-        log.info("Vicinity Proxy Receiving phrase: " + phrase);
+        log.debug("Vicinity Proxy Receiving phrase: " + phrase);
 
         if (phrase.name().equals("ActorEntered")) {
             if (!vicinityInfo.isActorEnteredPhraseEnabled()) {

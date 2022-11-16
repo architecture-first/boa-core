@@ -122,7 +122,7 @@ public class ResourceUtils {
     private Map<String, JsonSnippet> compileResources(Map<String, List<String>> mapFiles, List<Resource> resources) throws IOException {
         AtomicReference<String> idRef = new AtomicReference<>();
         for (var resource : resources) {
-            log.info("Processing resource: " + resource.getURL());
+            log.debug("Processing resource: " + resource.getURL());
             var contents = getJsonSchemaContents(resource, idRef);
             mapFiles.put(idRef.get(), contents);
         }
@@ -276,7 +276,7 @@ public class ResourceUtils {
                     continue;
                 }
                 for (Resource r : resources) {
-                    log.info(r.getFilename());
+                    log.debug(r.getFilename());
                     resourceList.add(r);
                 }
             }
