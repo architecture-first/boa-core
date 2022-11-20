@@ -4,6 +4,7 @@ import com.architecturefirst.boa.framework.business.actors.Actor;
 import com.architecturefirst.boa.framework.business.vicinity.exceptions.VicinityException;
 import com.architecturefirst.boa.framework.business.vicinity.messages.VicinityMessage;
 import com.architecturefirst.boa.framework.business.vicinity.phrases.Error;
+import com.architecturefirst.boa.framework.technical.util.CompressionUtils;
 import com.architecturefirst.boa.framework.technical.util.SimpleModel;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +36,9 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     public static final String CUSTOMER_INFO = "customerInfo";
     public static final String TOKEN = "token";
     public static final String JWT_TOKEN = "jwtToken";
+
+    public static final String COMPRESSION_TYPE = "compressionType";
+    public static final String COMPRESSION_TYPE_VALUE_DEFAULT = "Default";
     public static final String BOA_CONN = "boa-conn";
     public static final String BOA_PROJECT = "boa-project";
     public static final String BOA_TTL = "boa-ttl"; // Time to live
@@ -42,6 +46,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     public static final String OTHER_AREA_NAME = "otherAreaName";
     public static final double TTL_DEFAULT_VALUE = 1;
     public static final String PHRASE_TYPE = "phraseType";
+    public static final String COMPRESSION_STATUS = "compressionStatus";
     public static String PHRASE_ALL_PARTICIPANTS = "all";
     private static final int requestIdSize = 20;
 
@@ -775,6 +780,40 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     public ArchitectureFirstPhrase setAccessToken(String jwtToken) {header.put(JWT_TOKEN, jwtToken); return this;}
 
     /**
+     * Returns the compression type
+     * @return access token
+     */
+    public String getCompressionType() {return (String) header.get(COMPRESSION_TYPE);}
+
+    /**
+     * Sets the compression type
+     * @return ArchitectureFirstPhrase
+     */
+    public ArchitectureFirstPhrase setCompressionType(String compressionType) {header.put(COMPRESSION_TYPE, compressionType); return this;}
+
+    /**
+     * Sets the compression status
+     * @return ArchitectureFirstPhrase
+     */
+    public ArchitectureFirstPhrase setCompressionStatus(Boolean compressionStatus) {
+        header.put(COMPRESSION_STATUS, compressionStatus);
+
+        if (StringUtils.isEmpty(getCompressionType())) {
+            setCompressionType(COMPRESSION_TYPE_VALUE_DEFAULT);
+        }
+        return this;
+    }
+
+    /**
+     * Determines the compression status
+     * @return ArchitectureFirstPhrase
+     */
+    public boolean isCompressed() {
+        var isCompressed = header.get(COMPRESSION_STATUS);
+        return isCompressed != null && ((Boolean) isCompressed).booleanValue() == true;
+    }
+
+    /**
      * Returns the access token
      * @return access token
      */
@@ -1115,6 +1154,13 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      */
     public static ArchitectureFirstPhrase from(Object source, VicinityMessage message, boolean convertPhraseType) {
         try {
+            var jsonPayload = message.getJsonPayload();
+            if (StringUtils.isNotEmpty(message.getHeader().getCompressionType())) {
+                if (ArchitectureFirstPhrase.COMPRESSION_TYPE_VALUE_DEFAULT.equals(message.getHeader().getCompressionType())) {
+                    jsonPayload = CompressionUtils.decompress(jsonPayload, message.getHeader().getPayloadSize());
+                }
+            }
+
             var phraseType = message.getHeader().getPhraseType();
             if (phraseType != null && convertPhraseType) {
                 if (Character.isUpperCase(phraseType.charAt(0))) {
@@ -1122,7 +1168,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
                 }
                 else {
                     var cls = Class.forName(message.getHeader().getPhraseType());
-                    ArchitectureFirstPhrase phrase = new Gson().fromJson(message.getJsonPayload(), (Type) cls);
+                    ArchitectureFirstPhrase phrase = new Gson().fromJson(jsonPayload, (Type) cls);
                     return phrase;
                 }
             }

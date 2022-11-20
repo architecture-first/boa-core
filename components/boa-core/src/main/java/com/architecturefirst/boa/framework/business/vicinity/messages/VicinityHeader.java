@@ -21,5 +21,7 @@ public class VicinityHeader implements Serializable {
     private String area; // source area
     private String otherArea; // target area outside of source area
     private String project;
+    private String compressionType;  // null = "None", "Default", ... some custom value
+    private int payloadSize;
     private SimpleModel attributes;
 }

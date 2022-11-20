@@ -227,54 +227,42 @@ public class VicinityProxy implements Vicinity {
                     public void onMessage(String channel, String message) {
                         super.onMessage(channel, message);
 
-                        VicinityMessage vicinityMessage = VicinityMessage.from(message);
+                        VicinityMessage vicinityMessage = onReceiveRawVicinityMessage(message);
                         if (vicinityMessage != null) {
 
                             AtomicReference<String> threadId = new AtomicReference<>();
                             var future = executor.submit(() -> {
                                 try {
                                     threadId.set(Thread.currentThread().getName());
-                                    ArchitectureFirstPhrase phrase = ArchitectureFirstPhrase.from(this, vicinityMessage);
+                                    ArchitectureFirstPhrase phrase = onConvertToArchitectureFirstPhrase(vicinityMessage);
                                     if (phrase != null) {
-                                        phrase.setPropagatedFromVicinity(true);
-                                        phrase.shouldAwaitResponse(false);  // this flag is for the caller not recipients
-                                        phrase.onVicinityInit();
-                                        log.debug("Received and Locally Published Phrase: " + new Gson().toJson(phrase));
-                                        convo.record(phrase, Conversation.Status.ReceivedInVicinity);
+                                        onProxyReceiveArchitectureFirstPhrase(phrase);
 
-                                        if (SecurityGuard.isOkToProceed(phrase)) {
-                                            phrase.setAsLocal(false).setAsHandled(false);
-                                            if ("server".equals(vicinityProcessType)) {
-                                                phrase.setPropagatedFromVicinity(false);
-                                            }
-                                            if (owner.isSecurityGuard()) {
-                                                publisher.publishEvent(new SecurityHolder(phrase));
-                                            }
-                                            else {
-                                                publisher.publishEvent(phrase);
-                                            }
+                                        if (onVicinityPhraseSecurityCheck(phrase)) {
+                                            onProxyBeforePublishPhrase(phrase);
+                                            onProxyPublishPhrase(phrase, owner);
                                         }
                                         else {
-                                            processInvalidToken(phrase);
+                                            onVicinitySecurityGuardRejectedPhrase(phrase);
                                         }
                                     } else {
-                                        owner.onError("Vicinity Message is not readable as an ArchitectureFirstPhrase: " + vicinityMessage);
+                                        onProxyInvalidVicinityMessage(owner, "Vicinity Message is not readable as an ArchitectureFirstPhrase: " + vicinityMessage);
                                     }
                                 }
                                 catch (Exception e) {
-                                    owner.onException(new ActorException(owner, e), "Error processing phrase: ");
+                                    onProxyProcessingException(e, owner);
                                 }
                                 finally {
                                     activeTasks.remove(this);
                                 }
                             });
                             activeTasks.put(future, "running");
-
                         }
                         else {
-                            owner.onError("Original message is not readable as a VicinityMessage: " + message);
+                            onProxyInvalidVicinityMessage(owner, "Original message is not readable as a VicinityMessage: " + message);
                         }
                     }
+
                 }, channelFor(target));
             }
             catch(Exception e) {
@@ -292,6 +280,7 @@ public class VicinityProxy implements Vicinity {
 
         setupTask(target, submitTask);
     }
+
 
     /**
      * Unsubscribe from the phrase subscription
@@ -549,6 +538,52 @@ public class VicinityProxy implements Vicinity {
     }
 
     // Lifecycle events (start)
+
+    private ArchitectureFirstPhrase onConvertToArchitectureFirstPhrase(VicinityMessage vicinityMessage) {
+        return ArchitectureFirstPhrase.from(this, vicinityMessage);
+    }
+
+
+    private static void onProxyProcessingException(Exception e, Actor owner) {
+        owner.onException(new ActorException(owner, e), "Error processing phrase: ");
+    }
+
+    private static void onProxyInvalidVicinityMessage(Actor owner, String vicinityMessage) {
+        owner.onError(vicinityMessage);
+    }
+
+    private void onProxyPublishPhrase(ArchitectureFirstPhrase phrase, Actor owner) {
+        if (owner.isSecurityGuard()) {
+            publisher.publishEvent(new SecurityHolder(phrase));
+        }
+        else {
+            publisher.publishEvent(phrase);
+        }
+    }
+
+    private void onProxyBeforePublishPhrase(ArchitectureFirstPhrase phrase) {
+        phrase.setAsLocal(false).setAsHandled(false);
+        if ("server".equals(vicinityProcessType)) {
+            phrase.setPropagatedFromVicinity(false);
+        }
+    }
+
+    private void onProxyReceiveArchitectureFirstPhrase(ArchitectureFirstPhrase phrase) {
+        phrase.setPropagatedFromVicinity(true);
+        phrase.shouldAwaitResponse(false);  // this flag is for the caller not recipients
+        phrase.onVicinityInit();
+        log.debug("Received and Locally Published Phrase: " + new Gson().toJson(phrase));
+        onProxyRecordConvo(phrase);
+    }
+
+    private void onProxyRecordConvo(ArchitectureFirstPhrase phrase) {
+        convo.record(phrase, Conversation.Status.ReceivedInVicinity);
+    }
+
+    private static VicinityMessage onReceiveRawVicinityMessage(String message) {
+        VicinityMessage vicinityMessage = VicinityMessage.from(message);
+        return vicinityMessage;
+    }
     private void onVicinityAfterProcessArchitectureFirstPhrase(ArchitectureFirstPhrase phrase) {
     }
 

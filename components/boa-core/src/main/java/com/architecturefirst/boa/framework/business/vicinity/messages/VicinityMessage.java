@@ -1,9 +1,11 @@
 package com.architecturefirst.boa.framework.business.vicinity.messages;
 
 import com.architecturefirst.boa.framework.technical.phrases.ArchitectureFirstPhrase;
+import com.architecturefirst.boa.framework.technical.util.CompressionUtils;
 import com.google.gson.Gson;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.lang.reflect.Type;
@@ -113,7 +115,17 @@ public class VicinityMessage implements Serializable {
         message.getHeader().setProject(phrase.project());
         message.getHeader().setArea(phrase.area());
         message.getHeader().setTtl(phrase.ttl());
+
         message.setPayload(phrase, phrase.getClass());
+
+        if (StringUtils.isNotEmpty(phrase.getCompressionType())) {
+            message.getHeader().setCompressionType(phrase.getCompressionType());
+            int originalPayloadSize = message.getJsonPayload().length();
+            var compressedPayloadJson = CompressionUtils.compress(message.getJsonPayload());
+            message.setPayload(compressedPayloadJson, String.class);
+            message.getHeader().setPayloadSize(originalPayloadSize);
+        }
+
         return message;
     }
 
