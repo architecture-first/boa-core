@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.zip.*;
 
@@ -34,10 +35,13 @@ public class CompressionUtils {
             Deflater compresser = new Deflater();
             compresser.setInput(input);
             compresser.finish();
-            compresser.deflate(buffOut);
+            int numBytes = compresser.deflate(buffOut);
 
-            String b64 = Base64.getEncoder().encodeToString(buffOut.array());
-            return b64.getBytes(ENCODING_UTF_8);
+            var arr = Arrays.copyOf(buffOut.array(), buffOut.position());
+            return arr;
+
+//            String b64 = Base64.getEncoder().encodeToString(buffOut.array());
+//            return b64.getBytes(ENCODING_UTF_8);
         }
         catch (Exception e) {
             throw new RuntimeException(e);
@@ -60,16 +64,19 @@ public class CompressionUtils {
     public static byte[] decompress(byte[] input, int inputSize) {
 
         try {
-            byte[] d64 = Base64.getDecoder().decode(input);
+//            byte[] d64 = Base64.getDecoder().decode(input);
 
             Inflater decompresser = new Inflater();
-            decompresser.setInput(d64);
+            decompresser.setInput(input);
 
             var resultBuff = ByteBuffer.allocate(inputSize);
             decompresser.inflate(resultBuff);
             decompresser.end();
 
-            return resultBuff.array();
+            var arr = Arrays.copyOf(resultBuff.array(), resultBuff.position());
+            return arr;
+
+            //return resultBuff.array();
         }
         catch (Exception e) {
             throw new RuntimeException(e);

@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 
 /**
  * The message sent through the Vicinity between Actors
@@ -118,11 +119,11 @@ public class VicinityMessage implements Serializable {
 
         message.setPayload(phrase, phrase.getClass());
 
-        if (StringUtils.isNotEmpty(phrase.getCompressionType())) {
+        if (StringUtils.isNotEmpty(phrase.getCompressionType()) && !phrase.isCompressed()) {
             message.getHeader().setCompressionType(phrase.getCompressionType());
             int originalPayloadSize = message.getJsonPayload().length();
-            var compressedPayloadJson = CompressionUtils.compress(message.getJsonPayload());
-            message.setPayload(compressedPayloadJson, String.class);
+            var compressedPayloadJson = CompressionUtils.compress(message.getJsonPayload().getBytes(StandardCharsets.UTF_8));
+            message.setPayload(compressedPayloadJson, byte[].class);
             message.getHeader().setPayloadSize(originalPayloadSize);
         }
 

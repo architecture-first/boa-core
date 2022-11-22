@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEvent;
 
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -1142,7 +1143,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      * @return return ArchitectureFirstPhrase object or null if error
      */
     public static ArchitectureFirstPhrase from(Object source, VicinityMessage message) {
-        return from(source, message, true);
+        return from(source, message, true, true);
     }
 
     /**
@@ -1152,12 +1153,15 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      * @param convertPhraseType - true to convert to the specific concrete class specified
      * @return return ArchitectureFirstPhrase object or null if error
      */
-    public static ArchitectureFirstPhrase from(Object source, VicinityMessage message, boolean convertPhraseType) {
+    public static ArchitectureFirstPhrase from(Object source, VicinityMessage message, boolean convertPhraseType, boolean decompressIfApplicable) {
         try {
             var jsonPayload = message.getJsonPayload();
-            if (StringUtils.isNotEmpty(message.getHeader().getCompressionType())) {
+            if (StringUtils.isNotEmpty(message.getHeader().getCompressionType()) && decompressIfApplicable) {
                 if (ArchitectureFirstPhrase.COMPRESSION_TYPE_VALUE_DEFAULT.equals(message.getHeader().getCompressionType())) {
-                    jsonPayload = CompressionUtils.decompress(jsonPayload, message.getHeader().getPayloadSize());
+                    byte[] bytes = new Gson().fromJson(jsonPayload, byte[].class);
+                    jsonPayload = new String(CompressionUtils.decompress(bytes, message.getHeader().getPayloadSize()));
+                    var s = new String(jsonPayload).replace("\\","").replace("\"{","{").replace("}\"", "}");;
+                    message.setJsonPayload(s);
                 }
             }
 
