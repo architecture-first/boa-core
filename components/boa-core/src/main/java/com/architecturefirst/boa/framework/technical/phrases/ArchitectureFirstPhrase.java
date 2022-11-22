@@ -1160,14 +1160,13 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
                 if (ArchitectureFirstPhrase.COMPRESSION_TYPE_VALUE_DEFAULT.equals(message.getHeader().getCompressionType())) {
                     byte[] bytes = new Gson().fromJson(jsonPayload, byte[].class);
                     jsonPayload = new String(CompressionUtils.decompress(bytes, message.getHeader().getPayloadSize()));
-                    var s = new String(jsonPayload).replace("\\","").replace("\"{","{").replace("}\"", "}");;
-                    message.setJsonPayload(s);
+                    message.setJsonPayload(jsonPayload);
                 }
             }
 
             var phraseType = message.getHeader().getPhraseType();
             if (phraseType != null && convertPhraseType) {
-                if (Character.isUpperCase(phraseType.charAt(0))) {
+                if (Character.isUpperCase(phraseType.charAt(0)) || phraseType.equals("byte[]")) {
                     return from(message);
                 }
                 else {
