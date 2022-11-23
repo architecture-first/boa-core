@@ -4,7 +4,7 @@ import com.architecturefirst.boa.framework.business.actors.Actor;
 import com.architecturefirst.boa.framework.business.vicinity.exceptions.VicinityException;
 import com.architecturefirst.boa.framework.business.vicinity.messages.VicinityMessage;
 import com.architecturefirst.boa.framework.business.vicinity.phrases.Error;
-import com.architecturefirst.boa.framework.technical.util.CompressionUtils;
+import com.architecturefirst.boa.framework.technical.translation.TranslationFactory;
 import com.architecturefirst.boa.framework.technical.util.SimpleModel;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,7 +19,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEvent;
 
 import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -38,8 +37,9 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     public static final String TOKEN = "token";
     public static final String JWT_TOKEN = "jwtToken";
 
-    public static final String COMPRESSION_TYPE = "compressionType";
-    public static final String COMPRESSION_TYPE_VALUE_DEFAULT = "Default";
+    public static final String TRANSLATION_TYPE = "translationType";
+    public static final String TRANSLATION_TYPE_VALUE_DEFAULT = "Default";
+    public static final String TRANSLATION_STATUS = "translationStatus";
     public static final String BOA_CONN = "boa-conn";
     public static final String BOA_PROJECT = "boa-project";
     public static final String BOA_TTL = "boa-ttl"; // Time to live
@@ -47,7 +47,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     public static final String OTHER_AREA_NAME = "otherAreaName";
     public static final double TTL_DEFAULT_VALUE = 1;
     public static final String PHRASE_TYPE = "phraseType";
-    public static final String COMPRESSION_STATUS = "compressionStatus";
+    public static final String PHRASE_TYPE_BYTE_ARRAY = "byte[]";
     public static String PHRASE_ALL_PARTICIPANTS = "all";
     private static final int requestIdSize = 20;
 
@@ -781,36 +781,36 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
     public ArchitectureFirstPhrase setAccessToken(String jwtToken) {header.put(JWT_TOKEN, jwtToken); return this;}
 
     /**
-     * Returns the compression type
+     * Returns the translation type
      * @return access token
      */
-    public String getCompressionType() {return (String) header.get(COMPRESSION_TYPE);}
+    public String getTranslationType() {return (String) header.get(TRANSLATION_TYPE);}
 
     /**
-     * Sets the compression type
+     * Sets the translation type
      * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstPhrase setCompressionType(String compressionType) {header.put(COMPRESSION_TYPE, compressionType); return this;}
+    public ArchitectureFirstPhrase setTranslationType(String translationType) {header.put(TRANSLATION_TYPE, translationType); return this;}
 
     /**
-     * Sets the compression status
+     * Sets the translation status
      * @return ArchitectureFirstPhrase
      */
-    public ArchitectureFirstPhrase setCompressionStatus(Boolean compressionStatus) {
-        header.put(COMPRESSION_STATUS, compressionStatus);
+    public ArchitectureFirstPhrase setTranslationStatus(Boolean translationStatus) {
+        header.put(TRANSLATION_STATUS, translationStatus);
 
-        if (StringUtils.isEmpty(getCompressionType())) {
-            setCompressionType(COMPRESSION_TYPE_VALUE_DEFAULT);
+        if (StringUtils.isEmpty(getTranslationType())) {
+            setTranslationType(TRANSLATION_TYPE_VALUE_DEFAULT);
         }
         return this;
     }
 
     /**
-     * Determines the compression status
+     * Determines the translation status
      * @return ArchitectureFirstPhrase
      */
     public boolean isCompressed() {
-        var isCompressed = header.get(COMPRESSION_STATUS);
+        var isCompressed = header.get(TRANSLATION_STATUS);
         return isCompressed != null && ((Boolean) isCompressed).booleanValue() == true;
     }
 
@@ -1153,20 +1153,17 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
      * @param convertPhraseType - true to convert to the specific concrete class specified
      * @return return ArchitectureFirstPhrase object or null if error
      */
-    public static ArchitectureFirstPhrase from(Object source, VicinityMessage message, boolean convertPhraseType, boolean decompressIfApplicable) {
+    public static ArchitectureFirstPhrase from(Object source, VicinityMessage message, boolean convertPhraseType, boolean detranslateIfApplicable) {
         try {
             var jsonPayload = message.getJsonPayload();
-            if (StringUtils.isNotEmpty(message.getHeader().getCompressionType()) && decompressIfApplicable) {
-                if (ArchitectureFirstPhrase.COMPRESSION_TYPE_VALUE_DEFAULT.equals(message.getHeader().getCompressionType())) {
-                    byte[] bytes = new Gson().fromJson(jsonPayload, byte[].class);
-                    jsonPayload = new String(CompressionUtils.decompress(bytes, message.getHeader().getPayloadSize()));
-                    message.setJsonPayload(jsonPayload);
-                }
+            if (StringUtils.isNotEmpty(message.getHeader().getTranslationType()) && detranslateIfApplicable) {
+                var translator = TranslationFactory.acquireTranslationHandler(message);
+                translator.convertToFormat(message);
             }
 
             var phraseType = message.getHeader().getPhraseType();
             if (phraseType != null && convertPhraseType) {
-                if (Character.isUpperCase(phraseType.charAt(0)) || phraseType.equals("byte[]")) {
+                if (Character.isUpperCase(phraseType.charAt(0)) || phraseType.equals(PHRASE_TYPE_BYTE_ARRAY)) {
                     return from(message);
                 }
                 else {
@@ -1178,6 +1175,7 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
 
         } catch (Exception e) {
             log.warn("Invalid class definition: ", e);
+
         }
 
         return from(message);

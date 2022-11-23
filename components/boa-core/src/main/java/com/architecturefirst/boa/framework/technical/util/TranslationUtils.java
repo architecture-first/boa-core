@@ -1,22 +1,17 @@
 package com.architecturefirst.boa.framework.technical.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.zip.*;
 
-public class CompressionUtils {
+public class TranslationUtils {
     public static final int BUFFER_SIZE = 10000;
     public static final String ENCODING_UTF_8 = "UTF-8";
 
 
-    public static String compress(String input) {
+    public static String translate(String input) {
         try {
-            var bytes = compress(input.getBytes());
+            var bytes = translate(input.getBytes());
             return new String(bytes);
         }
         catch(RuntimeException e) {
@@ -27,7 +22,7 @@ public class CompressionUtils {
         }
     }
 
-    public static byte[] compress(byte[] input) {
+    public static byte[] translate(byte[] input) {
 
         var buffOut = ByteBuffer.allocate(input.length);
 
@@ -48,9 +43,9 @@ public class CompressionUtils {
         }
     }
 
-    public static String decompress(String input, int inputSize) {
+    public static String detranslate(String input, int inputSize) {
         try {
-            var bytes = decompress(input.getBytes(ENCODING_UTF_8), inputSize);
+            var bytes = detranslate(input.getBytes(ENCODING_UTF_8), inputSize);
             return new String(bytes);
         }
         catch(RuntimeException e) {
@@ -61,7 +56,7 @@ public class CompressionUtils {
         }
     }
 
-    public static byte[] decompress(byte[] input, int inputSize) {
+    public static byte[] detranslate(byte[] input, int inputSize) {
 
         try {
 //            byte[] d64 = Base64.getDecoder().decode(input);
