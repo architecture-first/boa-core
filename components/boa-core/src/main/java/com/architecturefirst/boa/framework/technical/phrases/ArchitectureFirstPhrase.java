@@ -5,6 +5,7 @@ import com.architecturefirst.boa.framework.business.vicinity.exceptions.Vicinity
 import com.architecturefirst.boa.framework.business.vicinity.messages.VicinityMessage;
 import com.architecturefirst.boa.framework.business.vicinity.phrases.Error;
 import com.architecturefirst.boa.framework.technical.translation.TranslationFactory;
+import com.architecturefirst.boa.framework.technical.util.PhraseUtils;
 import com.architecturefirst.boa.framework.technical.util.SimpleModel;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -990,6 +991,27 @@ public class ArchitectureFirstPhrase extends ApplicationEvent {
                 .mappingProvider(new JacksonMappingProvider(om))
                 .jsonProvider(new JacksonJsonProvider(om))
                 .build();
+    }
+
+    /**
+     * Compare two strings for equivalency
+     * @param source
+     * @param comparee
+     * @return true if the strings are equivalent
+     */
+
+    public boolean isEquivalent(String source, String comparee) {
+        return PhraseUtils.isEquivalent(source, comparee);
+    }
+
+    /**
+     * Compare a source string against another for containment.
+     * @param source
+     * @param comparee
+     * @return true if the equivalent string is contained in the source string
+     */
+    public boolean containsEquivalent(String source, String comparee) {
+        return PhraseUtils.containsEquivalent(source, comparee);
     }
 
     /**
