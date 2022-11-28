@@ -3,6 +3,7 @@
   "$id": "http://boa.architecturefirst.com/json-schema/UnhandledException",
   "title": "UnhandledException",
   "description": "Represents a user token request for internal processing",
+  "version": "1.0.0",
   "type": "object",
   "implementsType": "Error",
   "properties": {

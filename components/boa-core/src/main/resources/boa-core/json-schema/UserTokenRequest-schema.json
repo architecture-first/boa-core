@@ -3,6 +3,7 @@
   "$id": "http://boa.architecturefirst.com/json-schema/UserTokenRequest",
   "title": "UserTokenRequest",
   "description": "Represents a user token request for internal processing",
+  "version": "1.0.0",
   "type": "object",
   "implementsType": "AccessRequest",
   "properties": {

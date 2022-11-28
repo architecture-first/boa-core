@@ -3,6 +3,7 @@
   "$id": "http://boa.architecturefirst.com/schema/boa-common-header",
   "title": "boa-common-header",
   "description": "The common header phrase",
+  "version": "1.0.0",
   "type": "object",
   "properties": {
     "from": {

@@ -3,6 +3,7 @@
   "$id": "http://boa.architecturefirst.com/json-schema/Acknowledgement",
   "title": "Acknowledgement",
   "description": "A phrase to represent acknowledgement of receipt of another phrase",
+  "version": "1.0.0",
   "type": "object",
 
   "properties": {

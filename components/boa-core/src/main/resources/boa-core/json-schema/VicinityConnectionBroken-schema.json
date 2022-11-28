@@ -3,6 +3,7 @@
   "$id": "http://boa.architecturefirst.com/json-schema/VicinityConnectionBroken",
   "title": "VicinityConnectionBroken",
   "description": "Represents an event when an Actor's connection to the Vicinity is broken and is no longer able to accept phrases",
+  "version": "1.0.0",
   "type": "object",
   "implementsType": "Error",
   "properties": {

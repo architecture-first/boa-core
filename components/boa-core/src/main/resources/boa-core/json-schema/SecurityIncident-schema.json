@@ -3,6 +3,7 @@
   "$id": "http://boa.architecturefirst.com/json-schema/SecurityIncident",
   "title": "SecurityIncident",
   "description": "Represents a security incident, such as an expired token",
+  "version": "1.0.0",
   "type": "object",
   "implementsType": "Error",
   "properties": {

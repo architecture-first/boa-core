@@ -3,6 +3,7 @@
   "$id": "http://boa.architecturefirst.com/json-schema/UserTokenReply",
   "title": "UserTokenReply",
   "description": "Represents the reply for a user token request",
+  "version": "1.0.0",
   "type": "object",
   "implementsType": "Error",
   "properties": {
