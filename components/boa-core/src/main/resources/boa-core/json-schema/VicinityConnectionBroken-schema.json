@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "http://boa.architecturefirst.com/json-schema/VicinityConnectionBroken",
+  "$id": "http://architecture1st.com/json-schema/VicinityConnectionBroken",
   "title": "VicinityConnectionBroken",
   "description": "Represents an event when an Actor's connection to the Vicinity is broken and is no longer able to accept phrases",
   "version": "1.0.0",
@@ -8,7 +8,7 @@
   "implementsType": "Error",
   "properties": {
     "header": {
-      "$ref": "http://boa.architecturefirst.com/schema/boa-common-header"
+      "$ref": "http://architecture1st.com/schema/boa-common-header"
     },
     "payload": {
       "description": "Particular data used as part of the phrase",

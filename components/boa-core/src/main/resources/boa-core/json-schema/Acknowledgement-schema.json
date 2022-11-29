@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "http://boa.architecturefirst.com/json-schema/Acknowledgement",
+  "$id": "http://architecture1st.com/json-schema/Acknowledgement",
   "title": "Acknowledgement",
   "description": "A phrase to represent acknowledgement of receipt of another phrase",
   "version": "1.0.0",
@@ -19,7 +19,7 @@
     },
 
     "header": {
-      "$ref": "http://boa.architecturefirst.com/schema/boa-common-header"
+      "$ref": "http://architecture1st.com/schema/boa-common-header"
     },
     "payload": {
       "description": "Particular data used as part of the phrase",

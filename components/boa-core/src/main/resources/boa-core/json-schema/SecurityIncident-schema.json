@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "http://boa.architecturefirst.com/json-schema/SecurityIncident",
+  "$id": "http://architecture1st.com/json-schema/SecurityIncident",
   "title": "SecurityIncident",
   "description": "Represents a security incident, such as an expired token",
   "version": "1.0.0",
@@ -8,7 +8,7 @@
   "implementsType": "Error",
   "properties": {
     "header": {
-      "$ref": "http://boa.architecturefirst.com/schema/boa-common-header"
+      "$ref": "http://architecture1st.com/schema/boa-common-header"
     },
     "payload": {
       "description": "Particular data used as part of the phrase",
