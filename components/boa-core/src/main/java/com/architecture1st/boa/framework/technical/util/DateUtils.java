@@ -3,6 +3,7 @@ package com.architecture1st.boa.framework.technical.util;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.Instant;
 
 /**
  * Utility date methods
@@ -24,6 +25,24 @@ public class DateUtils {
         var date = ZonedDateTime.now(ZoneId.of("GMT"));
         title = String.format(template, title, dtf.format(date));
         return title;
+    }
+
+    /**
+     * Return a current timestamp
+     * @return
+     */
+    public static String createTimestamp() {
+        Instant now = Instant.now();
+        return DateTimeFormatter.ISO_INSTANT.format(now);
+    }
+
+    /**
+     * Convert the ISO compatible date to ta timestamp
+     * @param isoString
+     * @return
+     */
+    public static Instant stringToTimestamp(String isoString) {
+        return Instant.parse(isoString);
     }
 
     /**
